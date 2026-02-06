@@ -9,9 +9,16 @@
   <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+  <!-- pdf.js para leitura de PDF no navegador -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.js"></script>
+  <script>
+    if (window['pdfjsLib']) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.js';
+    }
+  </script>
   <style>
     :root {
-      /* Tema claro */
       --bg-gradient: linear-gradient(135deg, #eff6ff, #dbeafe);
       --sidebar-bg: #ffffff;
       --sidebar-border: #bfdbfe;
@@ -30,7 +37,6 @@
     }
 
     html[data-theme="dark"] {
-      /* Tema escuro */
       --bg-gradient: linear-gradient(135deg, #020617, #0f172a);
       --sidebar-bg: #020617;
       --sidebar-border: #1d4ed8;
@@ -62,7 +68,6 @@
       display: flex;
     }
 
-    /* SIDEBAR */
     .sidebar {
       width: 260px;
       background: var(--sidebar-bg);
@@ -178,7 +183,6 @@
       color: var(--muted-text);
     }
 
-    /* MAIN */
     .main {
       flex: 1;
       padding: 24px 26px;
@@ -385,7 +389,6 @@
       flex: 1;
     }
 
-    /* MODAL */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -471,9 +474,7 @@
     }
 
     @media (max-width: 900px) {
-      body {
-        flex-direction: column;
-      }
+      body { flex-direction: column; }
       .sidebar {
         width: 100%;
         flex-direction: row;
@@ -481,9 +482,7 @@
         gap: 16px;
         overflow-x: auto;
       }
-      .main {
-        padding: 18px;
-      }
+      .main { padding: 18px; }
     }
   </style>
 </head>
@@ -555,7 +554,7 @@
       </div>
     </section>
 
-    <!-- ABA: MEMBROS -->
+    <!-- MEMBROS -->
     <section class="card" id="tab-members">
       <div class="card-header">
         <div>
@@ -569,7 +568,13 @@
         <button class="btn btn-secondary" onclick="exportTableToPDF('members-table','membros')">Exportar PDF</button>
         <label class="btn btn-secondary">
           Importar PDF
-          <input type="file" accept="application/pdf" style="display:none" onchange="importPdfPlaceholder(event)">
+          <input type="file" accept="application/pdf" style="display:none"
+                 onchange="importMembersFromPDF(event)">
+        </label>
+        <label class="btn btn-secondary">
+          Importar JSON
+          <input type="file" accept="application/json" style="display:none"
+                 onchange="importMembersFromJSON(event)">
         </label>
         <button class="btn btn-secondary" onclick="sendToDiscord('membros')">Enviar para o Discord</button>
       </div>
@@ -603,7 +608,7 @@
       </div>
     </section>
 
-    <!-- ABA: PRESENÇA EM EVENTOS -->
+    <!-- PRESENÇA -->
     <section class="card" id="tab-events" style="display:none">
       <div class="card-header">
         <div>
@@ -649,7 +654,7 @@
       </div>
     </section>
 
-    <!-- ABA: ENTREGAS -->
+    <!-- ENTREGAS -->
     <section class="card" id="tab-deliveries" style="display:none">
       <div class="card-header">
         <div>
@@ -662,6 +667,16 @@
         <button class="btn btn-primary" onclick="openDeliveryModal()">+ Registrar entrega</button>
         <button class="btn btn-secondary" onclick="showMonthlyReport()">Relatório mensal</button>
         <button class="btn btn-secondary" onclick="sendToDiscord('entregas')">Enviar para o Discord</button>
+        <label class="btn btn-secondary">
+          Importar PDF
+          <input type="file" accept="application/pdf" style="display:none"
+                 onchange="importDeliveriesFromPDF(event)">
+        </label>
+        <label class="btn btn-secondary">
+          Importar JSON
+          <input type="file" accept="application/json" style="display:none"
+                 onchange="importDeliveriesFromJSON(event)">
+        </label>
       </div>
 
       <div class="filters-row">
@@ -715,7 +730,7 @@
       </div>
     </section>
 
-    <!-- ABA: REPOSITÓRIO (IGUAL INDEX-2) -->
+    <!-- REPOSITÓRIO -->
     <section class="card" id="tab-repo" style="display:none">
       <div class="card-header">
         <div>
@@ -748,13 +763,23 @@
           <div class="actions-row" style="margin-top:8px;">
             <button class="btn btn-primary" onclick="addRepoItem()">Salvar item</button>
             <button class="btn btn-danger" onclick="clearRepo()">Limpar repositório</button>
+            <label class="btn btn-secondary">
+              Importar PDF
+              <input type="file" accept="application/pdf" style="display:none"
+                     onchange="importRepoFromPDF(event)">
+            </label>
+            <label class="btn btn-secondary">
+              Importar JSON
+              <input type="file" accept="application/json" style="display:none"
+                     onchange="importRepoFromJSON(event)">
+            </label>
           </div>
         </div>
       </div>
 
       <div class="card" style="margin-top:6px;">
         <div class="card-header">
-          <div class="card-title" style="font-size:16px;">Importar itens do jogo</div>
+          <div class="card-title" style="font-size:16px;">Importar itens do jogo (texto)</div>
           <div class="card-sub">Cole aqui o texto copiado do repositório do jogo (cada linha: item, quantidade, boss e data).</div>
         </div>
         <div class="modal-body" style="padding-top:0;">
@@ -764,7 +789,7 @@
               placeholder="Cole aqui o texto igual vem do jogo.&#10;Ex:&#10;Baú de Esboço da Batalha de Servidores    5    Batalha de Servidores    2026.02.03 20:18:27 UTC-3"></textarea>
           </div>
           <div class="actions-row" style="margin-top:8px;">
-            <button class="btn btn-primary" onclick="importRepoFromText()">Importar itens</button>
+            <button class="btn btn-primary" onclick="importRepoFromText()">Importar itens (texto)</button>
           </div>
         </div>
       </div>
@@ -785,12 +810,12 @@
       </div>
     </section>
 
-    <!-- ABA: RELATÓRIOS SEMANAIS -->
+    <!-- RELATÓRIOS SEMANAIS -->
     <section class="card" id="tab-reports" style="display:none">
       <div class="card-header">
         <div>
           <div class="card-title">Relatórios semanais</div>
-          <div class="card-sub">Resumo por semana de presença e entregas, estilo histórico do seu painel antigo.</div>
+          <div class="card-sub">Resumo por semana de presença e entregas.</div>
         </div>
       </div>
 
@@ -809,7 +834,7 @@
         <div class="card-header">
           <div>
             <div class="card-title">Presença na semana</div>
-            <div class="card-sub">Eventos somados por jogador na semana selecionada.</div>
+            <div class="card-sub">Eventos somados por jogador.</div>
           </div>
           <button class="btn btn-secondary" onclick="copyWeeklyPresenceText()">Copiar texto</button>
         </div>
@@ -820,7 +845,7 @@
         <div class="card-header">
           <div>
             <div class="card-title">Entregas na semana</div>
-            <div class="card-sub">Entregas somadas por jogador na semana selecionada.</div>
+            <div class="card-sub">Entregas somadas por jogador.</div>
           </div>
           <button class="btn btn-secondary" onclick="copyWeeklyDeliveriesText()">Copiar texto</button>
         </div>
@@ -830,7 +855,6 @@
   </main>
 
   <!-- MODAIS -->
-  <!-- MEMBROS -->
   <div class="modal-overlay" id="member-modal">
     <div class="modal" style="max-width:520px;">
       <div class="modal-header">
@@ -873,7 +897,6 @@
     </div>
   </div>
 
-  <!-- PRESENÇA -->
   <div class="modal-overlay" id="event-modal">
     <div class="modal" style="max-width:520px;">
       <div class="modal-header">
@@ -920,7 +943,6 @@
     </div>
   </div>
 
-  <!-- ENTREGAS -->
   <div class="modal-overlay" id="delivery-modal">
     <div class="modal" style="max-width:520px;">
       <div class="modal-header">
@@ -960,20 +982,18 @@
   </div>
 
   <script>
-    // --------- DATA HELPERS ----------
+    // ---- DATA HELPERS ----
     function toISOFromBR(brDate) {
       const [d, m, y] = (brDate || '').split('/');
       if (!d || !m || !y) return '';
       return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
     }
-
     function toBRFromISO(isoDate) {
       if (!isoDate) return '';
       const [y, m, d] = isoDate.split('-');
       if (!y || !m || !d) return '';
       return `${d.padStart(2,'0')}/${m.padStart(2,'0')}/${y}`;
     }
-
     function todayBR() {
       const now = new Date();
       const d = String(now.getDate()).padStart(2,'0');
@@ -981,14 +1001,12 @@
       const y = now.getFullYear();
       return `${d}/${m}/${y}`;
     }
-
     function parseISO(iso) {
       if (!iso) return null;
       const [y,m,d] = iso.split('-').map(n=>parseInt(n,10));
       if (!y || !m || !d) return null;
       return new Date(y, m-1, d);
     }
-
     function formatDateBRFromDate(d) {
       if (!d) return '';
       const dia = String(d.getDate()).padStart(2,'0');
@@ -996,11 +1014,10 @@
       const ano = d.getFullYear();
       return `${dia}/${mes}/${ano}`;
     }
-
     function getWeekRange(date) {
       const d = new Date(date);
       d.setHours(0,0,0,0);
-      const day = d.getDay(); // 0 dom, 6 sab
+      const day = d.getDay();
       const sunday = new Date(d);
       sunday.setDate(d.getDate() - day);
       sunday.setHours(0,0,0,0);
@@ -1009,13 +1026,26 @@
       saturday.setHours(23,59,59,999);
       return { start: sunday, end: saturday };
     }
-
     function weekKeyFromDate(date) {
       const range = getWeekRange(date);
       return range.start.toISOString().slice(0,10);
     }
 
-    // --------- STATE & LOCALSTORAGE ----------
+    // ---- PDF TEXT EXTRACT ----
+    async function extractTextFromPDF(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = '';
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const content = await page.getTextContent();
+        const strings = content.items.map(item => item.str);
+        fullText += strings.join(' ') + '\n';
+      }
+      return fullText;
+    }
+
+    // ---- STATE ----
     const STORAGE_KEY = 'murders-dashboard-v4';
     let state = {
       clan: 1,
@@ -1033,17 +1063,11 @@
           const parsed = JSON.parse(raw);
           state = Object.assign(state, parsed);
         }
-      } catch (e) {
-        console.warn('Erro ao carregar localStorage', e);
-      }
+      } catch (e) { console.warn('Erro ao carregar localStorage', e); }
     }
-
     function saveState() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      } catch (e) {
-        console.warn('Erro ao salvar localStorage', e);
-      }
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+      catch (e) { console.warn('Erro ao salvar localStorage', e); }
     }
 
     function setClan(clan) {
@@ -1080,44 +1104,35 @@
       document.getElementById('currentDate').textContent = 'Hoje: ' + todayBR();
     }
 
-    // --------- WEBHOOK ----------
+    // ---- WEBHOOK ----
     function saveWebhook() {
       const input = document.getElementById('webhookUrl');
       state.webhookUrl = input.value.trim();
       saveState();
       alert('Webhook salvo para este navegador.');
     }
-
     function loadWebhookToInput() {
       document.getElementById('webhookUrl').value = state.webhookUrl || '';
     }
-
     function sendToDiscord(tipo) {
       const webhookUrl = (state.webhookUrl || '').trim();
       if (!webhookUrl) {
-        alert('Defina primeiro a URL do webhook do Discord na caixa de configuração.');
+        alert('Defina primeiro a URL do webhook do Discord.');
         return;
       }
       const msg = `Painel Murders – ${tipo} • Clã ${state.clan} • ${todayBR()}`;
       alert('Simulação de envio para o Discord:\n\n' + msg + '\n\nWebhook: ' + webhookUrl);
     }
 
-    // --------- TEMA ----------
+    // ---- TEMA ----
     const THEME_KEY = 'murders-theme';
-
     function applyTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
       const icon = document.getElementById('theme-toggle-icon');
       const text = document.getElementById('theme-toggle-text');
-      if (theme === 'dark') {
-        icon.textContent = '🌞';
-        text.textContent = 'Modo claro';
-      } else {
-        icon.textContent = '🌙';
-        text.textContent = 'Modo escuro';
-      }
+      if (theme === 'dark') { icon.textContent = '🌞'; text.textContent = 'Modo claro'; }
+      else { icon.textContent = '🌙'; text.textContent = 'Modo escuro'; }
     }
-
     function initTheme() {
       const stored = localStorage.getItem(THEME_KEY);
       const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -1125,7 +1140,6 @@
       applyTheme(theme);
       localStorage.setItem(THEME_KEY, theme);
     }
-
     function setupThemeToggle() {
       const btn = document.getElementById('theme-toggle');
       if (!btn) return;
@@ -1137,11 +1151,11 @@
       });
     }
 
-    // --------- MODAL HELPERS ----------
+    // ---- MODAIS ----
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // --------- MEMBROS ----------
+    // ---- MEMBROS ----
     function openMemberModal(index = null) {
       document.getElementById('member-index').value = index !== null ? index : '';
       document.getElementById('member-modal-title').textContent = index !== null ? 'Editar membro' : 'Novo membro';
@@ -1162,9 +1176,7 @@
       }
       openModal('member-modal');
     }
-
     function closeMemberModal() { closeModal('member-modal'); }
-
     function saveMember() {
       const idxStr = document.getElementById('member-index').value;
       const nick = document.getElementById('member-nick').value.trim();
@@ -1186,14 +1198,12 @@
       closeMemberModal();
       renderMembers();
     }
-
     function deleteMember(index) {
       if (!confirm('Excluir este membro?')) return;
       state.members[state.clan].splice(index,1);
       saveState();
       renderMembers();
     }
-
     function renderMembers() {
       const body = document.getElementById('members-body');
       body.innerHTML = '';
@@ -1221,7 +1231,71 @@
       });
     }
 
-    // --------- PRESENÇA ----------
+    async function importMembersFromPDF(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const text = await extractTextFromPDF(file);
+        const linhas = text.split('\n')
+          .map(l => l.trim())
+          .filter(l => l.length > 0);
+        const list = state.members[state.clan];
+        linhas.forEach(linha => {
+          const partes = linha.split(/\s{2,}/).map(p => p.trim()).filter(Boolean);
+          if (partes.length < 4) return;
+          const [nick, level, power, classe] = partes;
+          if (!nick || nick.toLowerCase() === 'nick') return;
+          const existingIdx = list.findIndex(m => m.nick.toLowerCase() === nick.toLowerCase());
+          const record = {
+            nick,
+            level: level || '',
+            power: power || '',
+            classe: classe || '',
+            data: toISOFromBR(todayBR())
+          };
+          if (existingIdx >= 0) list[existingIdx] = record;
+          else list.push(record);
+        });
+        saveState();
+        renderMembers();
+        alert('Importação de membros via PDF concluída.');
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao ler o PDF de membros. Ajuste o formato se necessário.');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    async function importMembersFromJSON(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!Array.isArray(data)) {
+          alert('JSON inválido: esperado um array de membros.');
+          return;
+        }
+        state.members[state.clan] = data.map(m => ({
+          nick: String(m.nick || '').trim(),
+          level: String(m.level || ''),
+          power: String(m.power || ''),
+          classe: String(m.classe || ''),
+          data: m.data || toISOFromBR(todayBR())
+        }));
+        saveState();
+        renderMembers();
+        alert('Importação de membros via JSON concluída.');
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao ler JSON de membros.');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    // ---- PRESENÇA ----
     function openEventModal(index = null) {
       document.getElementById('event-index').value = index !== null ? index : '';
       document.getElementById('event-modal-title').textContent = index !== null ? 'Editar presença' : 'Registrar presença';
@@ -1242,9 +1316,7 @@
       }
       openModal('event-modal');
     }
-
     function closeEventModal() { closeModal('event-modal'); }
-
     function saveEvent() {
       const idxStr = document.getElementById('event-index').value;
       const dataBR = document.getElementById('event-date').value.trim() || todayBR();
@@ -1266,7 +1338,6 @@
       closeEventModal();
       renderEvents();
     }
-
     function deleteEvent(index) {
       if (!confirm('Excluir este registro de presença?')) return;
       state.events[state.clan].splice(index,1);
@@ -1274,7 +1345,6 @@
       renderEvents();
       buildWeekSelectors();
     }
-
     function renderEvents() {
       const body = document.getElementById('events-body');
       body.innerHTML = '';
@@ -1333,7 +1403,6 @@
       }
       buildWeekSelectors();
     }
-
     function editEventsByGroup(nick, isoDate) {
       const list = state.events[state.clan];
       const idx = list.findIndex(e=>e.nick===nick && e.data===isoDate);
@@ -1341,7 +1410,7 @@
       openEventModal(idx);
     }
 
-    // --------- ENTREGAS ----------
+    // ---- ENTREGAS ----
     function openDeliveryModal(index = null) {
       document.getElementById('delivery-index').value = index !== null ? index : '';
       document.getElementById('delivery-modal-title').textContent = index !== null ? 'Editar entrega' : 'Registrar entrega';
@@ -1360,9 +1429,7 @@
       }
       openModal('delivery-modal');
     }
-
     function closeDeliveryModal() { closeModal('delivery-modal'); }
-
     function saveDelivery() {
       const idxStr = document.getElementById('delivery-index').value;
       const dataBR = document.getElementById('delivery-date').value.trim() || todayBR();
@@ -1383,7 +1450,6 @@
       closeDeliveryModal();
       renderDeliveries();
     }
-
     function deleteDelivery(index) {
       if (!confirm('Excluir esta entrega?')) return;
       state.deliveries[state.clan].splice(index,1);
@@ -1391,7 +1457,6 @@
       renderDeliveries();
       buildWeekSelectors();
     }
-
     function renderDeliveries() {
       const body = document.getElementById('deliveries-body');
       body.innerHTML = '';
@@ -1419,6 +1484,61 @@
       buildWeekSelectors();
     }
 
+    async function importDeliveriesFromPDF(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const text = await extractTextFromPDF(file);
+        const linhas = text.split('\n')
+          .map(l => l.trim())
+          .filter(l => l.length > 0);
+        const list = state.deliveries[state.clan];
+        linhas.forEach(linha => {
+          const partes = linha.split(/\s{2,}/).map(p => p.trim()).filter(Boolean);
+          if (partes.length < 4) return;
+          const [dataStr, nick, classe, descricao] = partes;
+          if (!nick || nick.toLowerCase()==='nick') return;
+          const dataISO = toISOFromBR(dataStr);
+          list.push({ data: dataISO, nick, classe, descricao });
+        });
+        saveState();
+        renderDeliveries();
+        alert('Importação de entregas via PDF concluída.');
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao ler o PDF de entregas.');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    async function importDeliveriesFromJSON(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!Array.isArray(data)) {
+          alert('JSON inválido: esperado um array de entregas.');
+          return;
+        }
+        state.deliveries[state.clan] = data.map(d => ({
+          data: d.data || toISOFromBR(todayBR()),
+          nick: String(d.nick || '').trim(),
+          classe: String(d.classe || ''),
+          descricao: String(d.descricao || '')
+        }));
+        saveState();
+        renderDeliveries();
+        alert('Importação de entregas via JSON concluída.');
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao ler JSON de entregas.');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
     function showMonthlyReport() {
       document.getElementById('monthly-report-card').style.display='block';
       if (!document.getElementById('reportMonth').value) {
@@ -1428,7 +1548,6 @@
       }
       renderMonthlyReport();
     }
-
     function renderMonthlyReport() {
       const monthInput=document.getElementById('reportMonth').value;
       const body=document.getElementById('monthly-report-body');
@@ -1449,14 +1568,12 @@
       });
     }
 
-    // --------- REPOSITÓRIO (MODELO INDEX-2) ----------
+    // ---- REPOSITÓRIO ----
     function renderRepo() {
       const tbody = document.getElementById('repoTableBody');
       if (!tbody) return;
       tbody.innerHTML = '';
-
       const list = state.repoItems[state.clan] || [];
-
       list.forEach((r, index) => {
         const tr = document.createElement('tr');
         tr.dataset.index = index;
@@ -1474,7 +1591,6 @@
         `;
         tbody.appendChild(tr);
       });
-
       if (!list.length) {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td colspan="5">Nenhum item no repositório.</td>`;
@@ -1487,11 +1603,7 @@
       const tipo = document.getElementById('repoType').value.trim();
       const boss = document.getElementById('repoBoss').value.trim();
       const qtdStr = document.getElementById('repoQuantity').value.trim();
-
-      if (!itemNome) {
-        alert('Informe o nome do item.');
-        return;
-      }
+      if (!itemNome) { alert('Informe o nome do item.'); return; }
 
       const qtdNum = qtdStr === '' ? 0 : parseInt(qtdStr, 10);
       const list = state.repoItems[state.clan] || (state.repoItems[state.clan] = []);
@@ -1527,7 +1639,6 @@
         alert('Cole o texto do jogo primeiro.');
         return;
       }
-
       const linhas = rawText
         .split('\n')
         .map(l => l.trim())
@@ -1568,7 +1679,72 @@
 
       saveState();
       renderRepo();
-      alert('Importação de itens concluída.');
+      alert('Importação de itens (texto) concluída.');
+    }
+
+    async function importRepoFromPDF(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const text = await extractTextFromPDF(file);
+        const linhas = text.split('\n')
+          .map(l => l.trim())
+          .filter(l => l.length > 0);
+
+        const list = state.repoItems[state.clan] || (state.repoItems[state.clan] = []);
+
+        linhas.forEach(linha => {
+          const partes = linha.split(/\s{2,}/).map(p => p.trim()).filter(Boolean);
+          if (partes.length < 4) return;
+          const [itemNome, tipo, boss, qtdStr] = partes;
+          if (!itemNome || itemNome.toLowerCase()==='item') return;
+          const qtdNum = parseInt(qtdStr.replace(/\D/g,''), 10) || 0;
+          const idx = list.findIndex(r => r.item.toLowerCase() === itemNome.toLowerCase());
+          if (idx >= 0) {
+            list[idx].tipo = tipo;
+            list[idx].boss = boss;
+            list[idx].qtd = qtdNum;
+          } else {
+            list.push({ item: itemNome, tipo, boss, qtd: qtdNum });
+          }
+        });
+
+        saveState();
+        renderRepo();
+        alert('Importação de repositório via PDF concluída.');
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao ler o PDF do repositório.');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    async function importRepoFromJSON(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!Array.isArray(data)) {
+          alert('JSON inválido: esperado um array de itens.');
+          return;
+        }
+        state.repoItems[state.clan] = data.map(r => ({
+          item: String(r.item || '').trim(),
+          tipo: String(r.tipo || ''),
+          boss: String(r.boss || ''),
+          qtd: Number(r.qtd || 0)
+        }));
+        saveState();
+        renderRepo();
+        alert('Importação de repositório via JSON concluída.');
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao ler JSON do repositório.');
+      } finally {
+        event.target.value = '';
+      }
     }
 
     function deleteRepoItem(index) {
@@ -1580,7 +1756,7 @@
       renderRepo();
     }
 
-    // --------- RELATÓRIOS SEMANAIS ----------
+    // ---- RELATÓRIOS SEMANAIS ----
     function buildWeekSelectors(){
       const presenceSelect=document.getElementById('weekPresenceSelect');
       const deliveriesSelect=document.getElementById('weekDeliveriesSelect');
@@ -1725,7 +1901,7 @@
       navigator.clipboard.writeText(agg.text).then(()=>{
         alert('Relatório de presença copiado para a área de transferência.');
       }).catch(()=>{
-        alert('Não foi possível copiar automaticamente. Você pode selecionar o texto manualmente na tela.');
+        alert('Não foi possível copiar automaticamente. Selecione o texto manualmente.');
       });
     }
 
@@ -1806,11 +1982,11 @@
       navigator.clipboard.writeText(agg.text).then(()=>{
         alert('Relatório de entregas copiado para a área de transferência.');
       }).catch(()=>{
-        alert('Não foi possível copiar automaticamente. Você pode selecionar o texto manualmente na tela.');
+        alert('Não foi possível copiar automaticamente. Selecione o texto manualmente.');
       });
     }
 
-    // --------- PDF ----------
+    // ---- PDF EXPORT ----
     function exportTableToPDF(tableId,nomeArquivoBase){
       const {jsPDF}=window.jspdf;
       const doc=new jsPDF();
@@ -1821,13 +1997,7 @@
       doc.save(nomeArquivoBase+'.pdf');
     }
 
-    function importPdfPlaceholder(event){
-      if(event.target.files && event.target.files[0]){
-        alert('Importar PDF aqui é só visual; importação real exigiria backend/leitura de PDF.');
-      }
-    }
-
-    // --------- RENDER GERAL ----------
+    // ---- RENDER GERAL / INIT ----
     function renderAll(){
       renderMembers();
       renderEvents();
@@ -1837,13 +2007,11 @@
       buildWeekSelectors();
     }
 
-    // Fechar modais clicando fora
     ['member-modal','event-modal','delivery-modal'].forEach(id=>{
       const el=document.getElementById(id);
       el.addEventListener('click',e=>{ if(e.target===el) el.style.display='none'; });
     });
 
-    // Init
     loadState();
     initTheme();
     setupThemeToggle();
