@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Fonte arredondada -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <!-- jsPDF para exportar PDF -->
+  <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
   <style>
@@ -20,6 +20,7 @@
       --cinza-claro: #f3f4f6;
       --vermelho: #ef4444;
       --verde: #22c55e;
+      --modal-bg: rgba(15, 23, 42, 0.5);
     }
 
     * {
@@ -193,6 +194,7 @@
       padding: 18px 18px 16px;
       border: 1px solid var(--azul-bebe);
       box-shadow: 0 12px 30px rgba(148, 163, 184, 0.35);
+      margin-bottom: 12px;
     }
 
     .card-header {
@@ -262,7 +264,7 @@
       align-items: center;
     }
 
-    .input, .select {
+    .input, .select, .textarea {
       border-radius: 999px;
       border: 1px solid var(--azul-bebe);
       background: var(--branco);
@@ -270,6 +272,11 @@
       padding: 6px 12px;
       font-size: 12px;
       outline: none;
+    }
+
+    .textarea {
+      border-radius: 12px;
+      resize: vertical;
     }
 
     .input::placeholder {
@@ -362,6 +369,65 @@
       flex: 1;
     }
 
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--modal-bg);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 16px;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 520px;
+      background: var(--branco);
+      border-radius: 14px;
+      padding: 16px 18px 14px;
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.55);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--azul-escuro);
+    }
+
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      font-size: 11px;
+      color: var(--cinza-texto);
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
     /* RESPONSIVO */
     @media (max-width: 900px) {
       body {
@@ -411,7 +477,7 @@
     </div>
 
     <div class="sidebar-footer">
-      Tudo salvo no navegador por clã (Murders 1 e 2). Ideal para organizar o dia a dia do clã.
+      Tudo salvo no navegador por clã (Murders 1 e 2). Perfeito para centralizar a gestão. [file:16]
     </div>
   </aside>
 
@@ -420,7 +486,7 @@
     <header class="topbar">
       <div>
         <div class="topbar-title" id="currentTabTitle">Membros</div>
-        <div class="topbar-sub">Gerencie Murders 1 e Murders 2 com presença, entregas e repositório.</div>
+        <div class="topbar-sub">Controle de membros, presença, entregas e repositório em um só lugar.</div>
       </div>
       <div class="date-badge" id="currentDate"></div>
     </header>
@@ -429,8 +495,8 @@
     <section class="card">
       <div class="card-header">
         <div>
-          <div class="card-title">Configuração de webhook do Discord</div>
-          <div class="card-sub">Cole aqui a URL do webhook que será usada em “Enviar para o Discord”.</div>
+          <div class="card-title">Webhook do Discord</div>
+          <div class="card-sub">Cole a URL do webhook que será usada em “Enviar para o Discord”.</div>
         </div>
       </div>
       <div class="webhook-box">
@@ -444,12 +510,12 @@
       <div class="card-header">
         <div>
           <div class="card-title">Membros do clã</div>
-          <div class="card-sub">Nick, level, power e classe em ordem alfabética por nick.</div>
+          <div class="card-sub">Nick, level, power e classe em ordem alfabética.</div>
         </div>
       </div>
 
       <div class="actions-row">
-        <button class="btn btn-primary" onclick="openMemberForm()">+ Adicionar membro</button>
+        <button class="btn btn-primary" onclick="openMemberModal()">+ Adicionar membro</button>
         <button class="btn btn-secondary" onclick="exportTableToPDF('members-table','membros')">Exportar PDF</button>
         <label class="btn btn-secondary">
           Importar PDF
@@ -492,12 +558,12 @@
       <div class="card-header">
         <div>
           <div class="card-title">Presença em eventos</div>
-          <div class="card-sub">Registre presença, falta e justificativa em cada evento.</div>
+          <div class="card-sub">Registre presença, falta e justificativa por evento.</div>
         </div>
       </div>
 
       <div class="actions-row">
-        <button class="btn btn-primary" onclick="openEventPresenceForm()">+ Registrar presença</button>
+        <button class="btn btn-primary" onclick="openEventModal()">+ Registrar presença</button>
         <button class="btn btn-secondary" onclick="sendToDiscord('presencas')">Enviar para o Discord</button>
       </div>
 
@@ -545,7 +611,7 @@
       </div>
 
       <div class="actions-row">
-        <button class="btn btn-primary" onclick="openDeliveryForm()">+ Registrar entrega</button>
+        <button class="btn btn-primary" onclick="openDeliveryModal()">+ Registrar entrega</button>
         <button class="btn btn-secondary" onclick="showMonthlyReport()">Relatório mensal</button>
         <button class="btn btn-secondary" onclick="sendToDiscord('entregas')">Enviar para o Discord</button>
       </div>
@@ -581,7 +647,7 @@
         <div class="card-header">
           <div>
             <div class="card-title">Relatório mensal de entregas</div>
-            <div class="card-sub">Resumo do que cada membro recebeu no mês selecionado.</div>
+            <div class="card-sub">Resumo do que cada membro recebeu no mês.</div>
           </div>
         </div>
         <div class="filters-row">
@@ -606,12 +672,12 @@
       <div class="card-header">
         <div>
           <div class="card-title">Repositório do clã</div>
-          <div class="card-sub">Anotações, regras, estratégias e o que o clã precisar.</div>
+          <div class="card-sub">Regras, estratégias, notas e o que o clã precisar.</div>
         </div>
       </div>
 
       <div class="actions-row">
-        <button class="btn btn-primary" onclick="newRepoEntry()">+ Nova entrada</button>
+        <button class="btn btn-primary" onclick="openRepoModal()">+ Nova entrada</button>
         <button class="btn btn-secondary" onclick="copyRepo()">Copiar</button>
         <button class="btn btn-secondary" onclick="pasteRepo()">Colar</button>
         <button class="btn btn-secondary" onclick="exportRepoToPDF()">Exportar PDF</button>
@@ -638,17 +704,173 @@
     </section>
   </main>
 
+  <!-- MODAL MEMBROS -->
+  <div class="modal-overlay" id="member-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="member-modal-title">Novo membro</div>
+        <button class="btn btn-secondary" onclick="closeMemberModal()">Fechar</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="member-index" />
+        <div class="form-group">
+          <label for="member-nick">Nick</label>
+          <input id="member-nick" class="input" placeholder="Nick do membro" />
+        </div>
+        <div class="form-group">
+          <label for="member-level">Level</label>
+          <input id="member-level" class="input" type="number" placeholder="Level" />
+        </div>
+        <div class="form-group">
+          <label for="member-power">Power</label>
+          <input id="member-power" class="input" type="number" placeholder="Power" />
+        </div>
+        <div class="form-group">
+          <label for="member-class">Classe</label>
+          <select id="member-class" class="select">
+            <option>Arqueira</option>
+            <option>Bardo</option>
+            <option>Berserker</option>
+            <option>Lanceiro</option>
+            <option>Maga</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="member-date">Data (dd/mm/aaaa)</label>
+          <input id="member-date" class="input" placeholder="dd/mm/aaaa" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeMemberModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveMember()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PRESENÇA -->
+  <div class="modal-overlay" id="event-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="event-modal-title">Registrar presença</div>
+        <button class="btn btn-secondary" onclick="closeEventModal()">Fechar</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="event-index" />
+        <div class="form-group">
+          <label for="event-date">Data (dd/mm/aaaa)</label>
+          <input id="event-date" class="input" placeholder="dd/mm/aaaa" />
+        </div>
+        <div class="form-group">
+          <label for="event-name">Evento</label>
+          <select id="event-name" class="select">
+            <option>Boss do clã</option>
+            <option>Copa Ymir</option>
+            <option>Guerra da coroa</option>
+            <option>Ilha de Sindri</option>
+            <option>Interserver</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="event-nick">Nick</label>
+          <input id="event-nick" class="input" placeholder="Nick do membro" />
+        </div>
+        <div class="form-group">
+          <label for="event-status">Status</label>
+          <select id="event-status" class="select">
+            <option>Presente</option>
+            <option>Faltou</option>
+            <option>Justificou</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="event-just">Justificativa (se houver)</label>
+          <textarea id="event-just" class="textarea" rows="2" placeholder="Justificativa"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeEventModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveEvent()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ENTREGAS -->
+  <div class="modal-overlay" id="delivery-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="delivery-modal-title">Registrar entrega</div>
+        <button class="btn btn-secondary" onclick="closeDeliveryModal()">Fechar</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="delivery-index" />
+        <div class="form-group">
+          <label for="delivery-date">Data (dd/mm/aaaa)</label>
+          <input id="delivery-date" class="input" placeholder="dd/mm/aaaa" />
+        </div>
+        <div class="form-group">
+          <label for="delivery-nick">Nick</label>
+          <input id="delivery-nick" class="input" placeholder="Nick do membro" />
+        </div>
+        <div class="form-group">
+          <label for="delivery-class">Classe</label>
+          <select id="delivery-class" class="select">
+            <option>Arqueira</option>
+            <option>Bardo</option>
+            <option>Berserker</option>
+            <option>Lanceiro</option>
+            <option>Maga</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="delivery-desc">Descrição da entrega</label>
+          <textarea id="delivery-desc" class="textarea" rows="2" placeholder="O que foi entregue"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeDeliveryModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveDelivery()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL REPOSITÓRIO -->
+  <div class="modal-overlay" id="repo-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="repo-modal-title">Nova entrada</div>
+        <button class="btn btn-secondary" onclick="closeRepoModal()">Fechar</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="repo-index" />
+        <div class="form-group">
+          <label for="repo-title">Título</label>
+          <input id="repo-title" class="input" placeholder="Título" />
+        </div>
+        <div class="form-group">
+          <label for="repo-date">Data (dd/mm/aaaa)</label>
+          <input id="repo-date" class="input" placeholder="dd/mm/aaaa" />
+        </div>
+        <div class="form-group">
+          <label for="repo-content">Conteúdo</label>
+          <textarea id="repo-content" class="textarea" rows="3" placeholder="Descrição, regras, notas..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeRepoModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveRepo()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // ---------- HELPERS DE DATA (dd/mm/aaaa <-> ISO) ----------
+    // --------- DATA HELPERS (dd/mm/aaaa) ----------
     function toISOFromBR(brDate) {
-      // brDate: dd/mm/aaaa
-      const [d, m, y] = brDate.split('/');
+      const [d, m, y] = (brDate || '').split('/');
       if (!d || !m || !y) return '';
       return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
     }
 
     function toBRFromISO(isoDate) {
-      // isoDate: aaaa-mm-dd
       if (!isoDate) return '';
       const [y, m, d] = isoDate.split('-');
       if (!y || !m || !d) return '';
@@ -671,8 +893,8 @@
       return `${y}-${m}-${d}`;
     }
 
-    // ---------- ESTADO E LOCALSTORAGE ----------
-    const STORAGE_KEY = 'murders-dashboard-v1';
+    // --------- STATE & LOCALSTORAGE ----------
+    const STORAGE_KEY = 'murders-dashboard-v2';
     let state = {
       clan: 1,
       webhookUrl: '',
@@ -688,7 +910,6 @@
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
-          // Faz merge simples
           state = Object.assign(state, parsed);
         }
       } catch (e) {
@@ -732,7 +953,7 @@
       document.getElementById('currentDate').textContent = 'Hoje: ' + todayBR();
     }
 
-    // ---------- WEBHOOK ----------
+    // --------- WEBHOOK ----------
     function saveWebhook() {
       const input = document.getElementById('webhookUrl');
       state.webhookUrl = input.value.trim();
@@ -747,16 +968,15 @@
     function sendToDiscord(tipo) {
       const webhookUrl = (state.webhookUrl || '').trim();
       if (!webhookUrl) {
-        alert('Defina primeiro a URL do webhook do Discord na caixa acima.');
+        alert('Defina primeiro a URL do webhook do Discord na caixa de configuração.');
         return;
       }
-      const msg = `Atualização do painel Murders (${tipo}) • Clã ${state.clan} • ${todayBR()}`;
-
-      // Para usar de verdade, descomente este bloco:
+      const msg = `Painel Murders – ${tipo} • Clã ${state.clan} • ${todayBR()}`;
+      // Para enviar de verdade, descomente:
       /*
       fetch(webhookUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({ content: msg })
       }).then(() => {
         alert('Enviado para o Discord!');
@@ -764,45 +984,66 @@
         alert('Falha ao enviar para o Discord. Confira a URL do webhook.');
       });
       */
-
       alert('Simulação de envio para o Discord:\n\n' + msg + '\n\nWebhook: ' + webhookUrl);
     }
 
-    // ---------- MEMBROS ----------
-    function openMemberForm(existingIndex = null) {
-      const isEdit = existingIndex !== null;
-      const currentMembers = state.members[state.clan];
-      let defaultNick = '';
-      let defaultLevel = '';
-      let defaultPower = '';
-      let defaultClasse = 'Arqueira';
-      let defaultDataBR = todayBR();
+    // --------- MODAL HELPERS ----------
+    function openModal(id) {
+      document.getElementById(id).style.display = 'flex';
+    }
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
 
-      if (isEdit) {
-        const m = currentMembers[existingIndex];
-        defaultNick = m.nick;
-        defaultLevel = m.level;
-        defaultPower = m.power;
-        defaultClasse = m.classe;
-        defaultDataBR = toBRFromISO(m.data);
-      }
-
-      const nick = prompt('Nick do membro:', defaultNick);
-      if (!nick) return;
-      const level = prompt('Level:', defaultLevel);
-      const power = prompt('Power:', defaultPower);
-      const classe = prompt('Classe (Arqueira, Bardo, Berserker, Maga ou Lanceiro):', defaultClasse) || defaultClasse;
-      const dataBR = prompt('Data (dd/mm/aaaa):', defaultDataBR) || defaultDataBR;
-      const dataISO = toISOFromBR(dataBR);
-
-      const record = { nick, level, power, classe, data: dataISO };
-
-      if (isEdit) {
-        currentMembers[existingIndex] = record;
+    // --------- MEMBROS ----------
+    function openMemberModal(index = null) {
+      document.getElementById('member-index').value = index !== null ? index : '';
+      document.getElementById('member-modal-title').textContent = index !== null ? 'Editar membro' : 'Novo membro';
+      if (index !== null) {
+        const m = state.members[state.clan][index];
+        if (!m) return;
+        document.getElementById('member-nick').value = m.nick;
+        document.getElementById('member-level').value = m.level || '';
+        document.getElementById('member-power').value = m.power || '';
+        document.getElementById('member-class').value = m.classe || 'Arqueira';
+        document.getElementById('member-date').value = toBRFromISO(m.data) || todayBR();
       } else {
-        currentMembers.push(record);
+        document.getElementById('member-nick').value = '';
+        document.getElementById('member-level').value = '';
+        document.getElementById('member-power').value = '';
+        document.getElementById('member-class').value = 'Arqueira';
+        document.getElementById('member-date').value = todayBR();
+      }
+      openModal('member-modal');
+    }
+
+    function closeMemberModal() {
+      closeModal('member-modal');
+    }
+
+    function saveMember() {
+      const idxStr = document.getElementById('member-index').value;
+      const nick = document.getElementById('member-nick').value.trim();
+      const level = document.getElementById('member-level').value.trim();
+      const power = document.getElementById('member-power').value.trim();
+      const classe = document.getElementById('member-class').value;
+      const dataBR = document.getElementById('member-date').value.trim() || todayBR();
+      if (!nick) {
+        alert('Nick é obrigatório.');
+        return;
+      }
+      const dataISO = toISOFromBR(dataBR);
+      const record = { nick, level, power, classe, data: dataISO };
+      const list = state.members[state.clan];
+
+      if (idxStr !== '') {
+        const idx = parseInt(idxStr, 10);
+        if (!Number.isNaN(idx) && list[idx]) list[idx] = record;
+      } else {
+        list.push(record);
       }
       saveState();
+      closeMemberModal();
       renderMembers();
     }
 
@@ -820,12 +1061,8 @@
       const filterClass = document.getElementById('filterClass').value;
       let list = [...state.members[state.clan]];
 
-      if (search) {
-        list = list.filter(m => m.nick.toLowerCase().includes(search));
-      }
-      if (filterClass) {
-        list = list.filter(m => m.classe === filterClass);
-      }
+      if (search) list = list.filter(m => m.nick.toLowerCase().includes(search));
+      if (filterClass) list = list.filter(m => m.classe === filterClass);
 
       list.sort((a, b) => a.nick.localeCompare(b.nick, 'pt-BR'));
 
@@ -839,7 +1076,7 @@
           <td>${toBRFromISO(m.data) || ''}</td>
           <td>
             <div class="table-actions">
-              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="openMemberForm(${idx})">Editar</button>
+              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="openMemberModal(${idx})">Editar</button>
               <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="deleteMember(${idx})">Excluir</button>
             </div>
           </td>
@@ -848,46 +1085,55 @@
       });
     }
 
-    // ---------- PRESENÇA EM EVENTOS ----------
-    function openEventPresenceForm(existingIndex = null) {
-      const isEdit = existingIndex !== null;
-      const currentEvents = state.events[state.clan];
-      let defNick = '';
-      let defEvento = 'Boss do clã';
-      let defStatus = 'Presente';
-      let defJust = '';
-      let defDataBR = todayBR();
-
-      if (isEdit) {
-        const e = currentEvents[existingIndex];
-        defNick = e.nick;
-        defEvento = e.evento;
-        defStatus = e.status;
-        defJust = e.justificativa || '';
-        defDataBR = toBRFromISO(e.data);
+    // --------- PRESENÇA ----------
+    function openEventModal(index = null) {
+      document.getElementById('event-index').value = index !== null ? index : '';
+      document.getElementById('event-modal-title').textContent = index !== null ? 'Editar presença' : 'Registrar presença';
+      if (index !== null) {
+        const e = state.events[state.clan][index];
+        if (!e) return;
+        document.getElementById('event-date').value = toBRFromISO(e.data) || todayBR();
+        document.getElementById('event-name').value = e.evento;
+        document.getElementById('event-nick').value = e.nick;
+        document.getElementById('event-status').value = e.status;
+        document.getElementById('event-just').value = e.justificativa || '';
+      } else {
+        document.getElementById('event-date').value = todayBR();
+        document.getElementById('event-name').value = 'Boss do clã';
+        document.getElementById('event-nick').value = '';
+        document.getElementById('event-status').value = 'Presente';
+        document.getElementById('event-just').value = '';
       }
+      openModal('event-modal');
+    }
 
-      const dataBR = prompt('Data (dd/mm/aaaa):', defDataBR);
-      if (!dataBR) return;
-      const evento = prompt('Evento (Guerra da coroa, Interserver, Boss do clã, Ilha de Sindri, Copa Ymir):', defEvento);
-      if (!evento) return;
-      const nick = prompt('Nick:', defNick);
-      if (!nick) return;
-      const status = prompt('Status (Presente, Faltou, Justificou):', defStatus) || defStatus;
-      let justificativa = defJust;
-      if (status === 'Faltou' || status === 'Justificou') {
-        justificativa = prompt('Justificativa (se houver):', justificativa) || '';
+    function closeEventModal() {
+      closeModal('event-modal');
+    }
+
+    function saveEvent() {
+      const idxStr = document.getElementById('event-index').value;
+      const dataBR = document.getElementById('event-date').value.trim() || todayBR();
+      const evento = document.getElementById('event-name').value;
+      const nick = document.getElementById('event-nick').value.trim();
+      const status = document.getElementById('event-status').value;
+      const justificativa = document.getElementById('event-just').value.trim();
+      if (!nick) {
+        alert('Nick é obrigatório.');
+        return;
       }
-
       const dataISO = toISOFromBR(dataBR);
       const record = { data: dataISO, evento, nick, status, justificativa };
+      const list = state.events[state.clan];
 
-      if (isEdit) {
-        currentEvents[existingIndex] = record;
+      if (idxStr !== '') {
+        const idx = parseInt(idxStr, 10);
+        if (!Number.isNaN(idx) && list[idx]) list[idx] = record;
       } else {
-        currentEvents.push(record);
+        list.push(record);
       }
       saveState();
+      closeEventModal();
       renderEvents();
     }
 
@@ -903,15 +1149,10 @@
       body.innerHTML = '';
       const filterEvent = document.getElementById('filterEvent').value;
       const filterStatus = document.getElementById('filterStatus').value;
-
       let list = [...state.events[state.clan]];
 
-      if (filterEvent) {
-        list = list.filter(e => e.evento === filterEvent);
-      }
-      if (filterStatus) {
-        list = list.filter(e => e.status === filterStatus);
-      }
+      if (filterEvent) list = list.filter(e => e.evento === filterEvent);
+      if (filterStatus) list = list.filter(e => e.status === filterStatus);
 
       list.sort((a, b) => {
         const ev = a.evento.localeCompare(b.evento, 'pt-BR');
@@ -932,7 +1173,7 @@
           <td>${e.justificativa || ''}</td>
           <td>
             <div class="table-actions">
-              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="openEventPresenceForm(${idx})">Editar</button>
+              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="openEventModal(${idx})">Editar</button>
               <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="deleteEvent(${idx})">Excluir</button>
             </div>
           </td>
@@ -941,39 +1182,52 @@
       });
     }
 
-    // ---------- ENTREGAS ----------
-    function openDeliveryForm(existingIndex = null) {
-      const isEdit = existingIndex !== null;
-      const current = state.deliveries[state.clan];
-      let defDataBR = todayBR();
-      let defNick = '';
-      let defClasse = 'Arqueira';
-      let defDesc = '';
-
-      if (isEdit) {
-        const d = current[existingIndex];
-        defDataBR = toBRFromISO(d.data);
-        defNick = d.nick;
-        defClasse = d.classe;
-        defDesc = d.descricao;
+    // --------- ENTREGAS ----------
+    function openDeliveryModal(index = null) {
+      document.getElementById('delivery-index').value = index !== null ? index : '';
+      document.getElementById('delivery-modal-title').textContent = index !== null ? 'Editar entrega' : 'Registrar entrega';
+      if (index !== null) {
+        const d = state.deliveries[state.clan][index];
+        if (!d) return;
+        document.getElementById('delivery-date').value = toBRFromISO(d.data) || todayBR();
+        document.getElementById('delivery-nick').value = d.nick;
+        document.getElementById('delivery-class').value = d.classe;
+        document.getElementById('delivery-desc').value = d.descricao || '';
+      } else {
+        document.getElementById('delivery-date').value = todayBR();
+        document.getElementById('delivery-nick').value = '';
+        document.getElementById('delivery-class').value = 'Arqueira';
+        document.getElementById('delivery-desc').value = '';
       }
+      openModal('delivery-modal');
+    }
 
-      const dataBR = prompt('Data (dd/mm/aaaa):', defDataBR);
-      if (!dataBR) return;
-      const nick = prompt('Nick:', defNick);
-      if (!nick) return;
-      const classe = prompt('Classe (Arqueira, Bardo, Berserker, Maga ou Lanceiro):', defClasse) || defClasse;
-      const descricao = prompt('Descrição da entrega:', defDesc) || '';
+    function closeDeliveryModal() {
+      closeModal('delivery-modal');
+    }
 
+    function saveDelivery() {
+      const idxStr = document.getElementById('delivery-index').value;
+      const dataBR = document.getElementById('delivery-date').value.trim() || todayBR();
+      const nick = document.getElementById('delivery-nick').value.trim();
+      const classe = document.getElementById('delivery-class').value;
+      const descricao = document.getElementById('delivery-desc').value.trim();
+      if (!nick) {
+        alert('Nick é obrigatório.');
+        return;
+      }
       const dataISO = toISOFromBR(dataBR);
       const record = { data: dataISO, nick, classe, descricao };
+      const list = state.deliveries[state.clan];
 
-      if (isEdit) {
-        current[existingIndex] = record;
+      if (idxStr !== '') {
+        const idx = parseInt(idxStr, 10);
+        if (!Number.isNaN(idx) && list[idx]) list[idx] = record;
       } else {
-        current.push(record);
+        list.push(record);
       }
       saveState();
+      closeDeliveryModal();
       renderDeliveries();
     }
 
@@ -991,12 +1245,8 @@
       const filterClass = document.getElementById('filterDeliveriesClass').value;
       let list = [...state.deliveries[state.clan]];
 
-      if (searchNick) {
-        list = list.filter(d => d.nick.toLowerCase().includes(searchNick));
-      }
-      if (filterClass) {
-        list = list.filter(d => d.classe === filterClass);
-      }
+      if (searchNick) list = list.filter(d => d.nick.toLowerCase().includes(searchNick));
+      if (filterClass) list = list.filter(d => d.classe === filterClass);
 
       list.sort((a, b) => a.nick.localeCompare(b.nick, 'pt-BR'));
 
@@ -1009,7 +1259,7 @@
           <td>${d.descricao || ''}</td>
           <td>
             <div class="table-actions">
-              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="openDeliveryForm(${idx})">Editar</button>
+              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="openDeliveryModal(${idx})">Editar</button>
               <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="deleteDelivery(${idx})">Excluir</button>
             </div>
           </td>
@@ -1035,9 +1285,7 @@
       if (!monthInput) return;
 
       const [year, month] = monthInput.split('-');
-      const list = state.deliveries[state.clan].filter(d => {
-        return d.data && d.data.startsWith(year + '-' + month);
-      });
+      const list = state.deliveries[state.clan].filter(d => d.data && d.data.startsWith(year + '-' + month));
 
       const byNick = {};
       list.forEach(d => {
@@ -1046,53 +1294,62 @@
       });
 
       const nicks = Object.keys(byNick).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
       nicks.forEach(nick => {
         const tr = document.createElement('tr');
         const resumo = byNick[nick].join(' • ');
-        tr.innerHTML = `
-          <td>${nick}</td>
-          <td>${resumo}</td>
-        `;
+        tr.innerHTML = `<td>${nick}</td><td>${resumo}</td>`;
         body.appendChild(tr);
       });
     }
 
-    // ---------- REPOSITÓRIO ----------
-    function newRepoEntry(existingIndex = null) {
-      const isEdit = existingIndex !== null;
-      const current = state.repo[state.clan];
-      let defTitulo = '';
-      let defConteudo = '';
-      let defDataBR = todayBR();
-
-      if (isEdit) {
-        const r = current[existingIndex];
-        defTitulo = r.titulo;
-        defConteudo = r.conteudo;
-        defDataBR = toBRFromISO(r.data);
+    // --------- REPOSITÓRIO ----------
+    function openRepoModal(index = null) {
+      document.getElementById('repo-index').value = index !== null ? index : '';
+      document.getElementById('repo-modal-title').textContent = index !== null ? 'Editar entrada' : 'Nova entrada';
+      if (index !== null) {
+        const r = state.repo[state.clan][index];
+        if (!r) return;
+        document.getElementById('repo-title').value = r.titulo;
+        document.getElementById('repo-date').value = toBRFromISO(r.data) || todayBR();
+        document.getElementById('repo-content').value = r.conteudo || '';
+      } else {
+        document.getElementById('repo-title').value = '';
+        document.getElementById('repo-date').value = todayBR();
+        document.getElementById('repo-content').value = '';
       }
+      openModal('repo-modal');
+    }
 
-      const titulo = prompt('Título:', defTitulo);
-      if (!titulo) return;
-      const dataBR = prompt('Data (dd/mm/aaaa):', defDataBR);
-      if (!dataBR) return;
-      const conteudo = prompt('Conteúdo:', defConteudo) || '';
+    function closeRepoModal() {
+      closeModal('repo-modal');
+    }
 
+    function saveRepo() {
+      const idxStr = document.getElementById('repo-index').value;
+      const titulo = document.getElementById('repo-title').value.trim();
+      const dataBR = document.getElementById('repo-date').value.trim() || todayBR();
+      const conteudo = document.getElementById('repo-content').value.trim();
+      if (!titulo) {
+        alert('Título é obrigatório.');
+        return;
+      }
       const dataISO = toISOFromBR(dataBR);
       const record = { titulo, data: dataISO, conteudo };
+      const list = state.repo[state.clan];
 
-      if (isEdit) {
-        current[existingIndex] = record;
+      if (idxStr !== '') {
+        const idx = parseInt(idxStr, 10);
+        if (!Number.isNaN(idx) && list[idx]) list[idx] = record;
       } else {
-        current.push(record);
+        list.push(record);
       }
       saveState();
+      closeRepoModal();
       renderRepo();
     }
 
     function editRepo(index) {
-      newRepoEntry(index);
+      openRepoModal(index);
     }
 
     function deleteRepo(index) {
@@ -1111,7 +1368,7 @@
       state.clipboardRepo = all;
       saveState();
       navigator.clipboard.writeText(all).catch(() => {});
-      alert('Repositório copiado (quando possível) para a área de transferência.');
+      alert('Repositório copiado para a área de transferência (quando permitido).');
     }
 
     function pasteRepo() {
@@ -1145,13 +1402,12 @@
       });
     }
 
-    // ---------- PDF ----------
+    // --------- PDF ----------
     function exportTableToPDF(tableId, nomeArquivoBase) {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       const table = document.getElementById(tableId);
       if (!table) return;
-
       doc.text(nomeArquivoBase.toUpperCase(), 14, 12);
       doc.autoTable({ html: '#' + tableId, startY: 16 });
       doc.save(nomeArquivoBase + '.pdf');
@@ -1168,11 +1424,11 @@
 
     function importPdfPlaceholder(event) {
       if (event.target.files && event.target.files[0]) {
-        alert('Importar PDF aqui é apenas visual. A importação real exigiria backend ou leitura avançada de PDF.');
+        alert('Importar PDF aqui é só visual; importação real exigiria backend/leitura avançada.');
       }
     }
 
-    // ---------- RENDER GERAL ----------
+    // --------- RENDER GERAL ----------
     function renderAll() {
       renderMembers();
       renderEvents();
@@ -1184,7 +1440,15 @@
       }
     }
 
-    // Inicialização
+    // Fechar modais clicando fora
+    ['member-modal','event-modal','delivery-modal','repo-modal'].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('click', (e) => {
+        if (e.target === el) el.style.display = 'none';
+      });
+    });
+
+    // Init
     loadState();
     updateDate();
     renderAll();
