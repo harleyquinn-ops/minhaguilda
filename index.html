@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Murders 1 & 2 - Painel do Clã</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Fonte arredondada do Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- jsPDF para exportar PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    :root {
+      --azul-escuro: #0f172a;
+      --azul: #2563eb;
+      --azul-claro: #dbeafe;
+      --branco: #ffffff;
+      --cinza: #e5e7eb;
+      --cinza-escuro: #4b5563;
+      --vermelho: #ef4444;
+      --verde: #22c55e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0b1120, #1d4ed8);
+      color: var(--branco);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 260px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      border-right: 1px solid rgba(148, 163, 184, 0.3);
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand-title {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .brand-sub {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .clan-switch {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .clan-btn {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--azul-claro);
+      background: transparent;
+      color: var(--azul-claro);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .clan-btn.active {
+      background: var(--azul);
+      color: var(--branco);
+    }
+
+    .nav-section-title {
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin-bottom: 6px;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      color: #d1d5db;
+      background: transparent;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s ease;
+    }
+
+    .nav-btn span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-btn:hover {
+      background: rgba(37, 99, 235, 0.2);
+      color: var(--branco);
+    }
+
+    .nav-btn.active {
+      background: var(--azul);
+      color: var(--branco);
+    }
+
+    .nav-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 6px;
+      background: rgba(37, 99, 235, 0.35);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    /* MAIN */
+    .main {
+      flex: 1;
+      padding: 24px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .topbar-title {
+      font-size: 20px;
+      font-weight: 500;
+    }
+
+    .topbar-sub {
+      font-size: 13px;
+      color: #e5e7eb;
+    }
+
+    .date-badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 12px;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.92);
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.65);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .card-sub {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    .actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: var(--azul);
+      color: var(--branco);
+    }
+
+    .btn-secondary {
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .btn-danger {
+      background: var(--vermelho);
+      color: var(--branco);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.45);
+    }
+
+    .filters-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+
+    .input, .select {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--branco);
+      padding: 6px 12px;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .input::placeholder {
+      color: #9ca3af;
+    }
+
+    .select {
+      padding-right: 24px;
+    }
+
+    .table-wrapper {
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      overflow: hidden;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead {
+      background: rgba(30, 64, 175, 0.9);
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    th {
+      font-weight: 500;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    tbody tr:nth-child(odd) {
+      background: rgba(15, 23, 42, 0.85);
+    }
+
+    .tag {
+      display: inline-flex;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .tag-success {
+      border-color: rgba(34, 197, 94, 0.7);
+      color: #bbf7d0;
+    }
+
+    .tag-danger {
+      border-color: rgba(239, 68, 68, 0.7);
+      color: #fecaca;
+    }
+
+    .tag-warning {
+      border-color: rgba(234, 179, 8, 0.7);
+      color: #fef3c7;
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .link-sm {
+      font-size: 11px;
+      color: var(--azul-claro);
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    /* RESPONSIVO */
+    @media (max-width: 900px) {
+      body {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+        overflow-x: auto;
+      }
+      .main {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-title">Murders</div>
+      <div class="brand-sub">Painel dos Clãs • 1 & 2</div>
+      <div class="clan-switch">
+        <button class="clan-btn active" data-clan="1" onclick="setClan(1)">Murders 1</button>
+        <button class="clan-btn" data-clan="2" onclick="setClan(2)">Murders 2</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="nav-section-title">Navegação</div>
+      <div class="nav">
+        <button class="nav-btn active" data-tab="members" onclick="switchTab('members')">
+          <span><span class="nav-icon">M</span>Membros</span>
+        </button>
+        <button class="nav-btn" data-tab="events" onclick="switchTab('events')">
+          <span><span class="nav-icon">E</span>Presença em eventos</span>
+        </button>
+        <button class="nav-btn" data-tab="deliveries" onclick="switchTab('deliveries')">
+          <span><span class="nav-icon">D</span>Entregas</span>
+        </button>
+        <button class="nav-btn" data-tab="repo" onclick="switchTab('repo')">
+          <span><span class="nav-icon">R</span>Repositório do clã</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      Acesso multiusuário, ideal para organização de clã.<br />
+      Registre tudo da Murders em um só lugar.
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <div class="topbar-title" id="currentTabTitle">Membros</div>
+        <div class="topbar-sub">Gerencie Murders 1 e Murders 2 com organização total.</div>
+      </div>
+      <div class="date-badge" id="currentDate"></div>
+    </header>
+
+    <!-- ABA: MEMBROS -->
+    <section class="card" id="tab-members">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Membros do clã</div>
+          <div class="card-sub">Nick, level, power e classe em ordem alfabética por nick.</div>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <button class="btn btn-primary" onclick="openMemberForm()">+ Adicionar membro</button>
+        <button class="btn btn-secondary" onclick="exportTableToPDF('members-table','membros')">Exportar PDF</button>
+        <label class="btn btn-secondary">
+          Importar PDF
+          <input type="file" accept="application/pdf" style="display:none" onchange="importPdfPlaceholder(event)">
+        </label>
+        <button class="btn btn-secondary" onclick="sendToDiscord('membros')">Enviar para o Discord</button>
+      </div>
+
+      <div class="filters-row">
+        <input class="input" id="searchMembers" placeholder="Buscar por nick..." oninput="renderMembers()" />
+        <select class="select" id="filterClass" onchange="renderMembers()">
+          <option value="">Todas as classes</option>
+          <option>Arqueira</option>
+          <option>Bardo</option>
+          <option>Berserker</option>
+          <option>Lanceiro</option>
+          <option>Maga</option>
+        </select>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="members-table">
+          <thead>
+            <tr>
+              <th>Nick</th>
+              <th>Level</th>
+              <th>Power</th>
+              <th>Classe</th>
+              <th>Data</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="members-body">
+            <!-- Preenchido via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ABA: PRESENÇA EM EVENTOS -->
+    <section class="card" id="tab-events" style="display:none">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Presença em eventos</div>
+          <div class="card-sub">Registre presença, falta e justificativa em cada evento.</div>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <button class="btn btn-primary" onclick="openEventPresenceForm()">+ Registrar presença</button>
+        <button class="btn btn-secondary" onclick="sendToDiscord('presencas')">Enviar para o Discord</button>
+      </div>
+
+      <div class="filters-row">
+        <select class="select" id="filterEvent" onchange="renderEvents()">
+          <option value="">Todos os eventos</option>
+          <option>Boss do clã</option>
+          <option>Copa Ymir</option>
+          <option>Guerra da coroa</option>
+          <option>Ilha de Sindri</option>
+          <option>Interserver</option>
+        </select>
+        <select class="select" id="filterStatus" onchange="renderEvents()">
+          <option value="">Todos status</option>
+          <option>Presente</option>
+          <option>Faltou</option>
+          <option>Justificou</option>
+        </select>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="events-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Evento</th>
+              <th>Nick</th>
+              <th>Status</th>
+              <th>Justificativa</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="events-body">
+            <!-- Preenchido via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ABA: ENTREGAS -->
+    <section class="card" id="tab-deliveries" style="display:none">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Entregas do clã</div>
+          <div class="card-sub">Controle tudo o que cada membro recebeu, por semana e por mês.</div>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <button class="btn btn-primary" onclick="openDeliveryForm()">+ Registrar entrega</button>
+        <button class="btn btn-secondary" onclick="showMonthlyReport()">Relatório mensal</button>
+        <button class="btn btn-secondary" onclick="sendToDiscord('entregas')">Enviar para o Discord</button>
+      </div>
+
+      <div class="filters-row">
+        <input class="input" id="searchDeliveriesNick" placeholder="Buscar por nick..." oninput="renderDeliveries()" />
+        <select class="select" id="filterDeliveriesClass" onchange="renderDeliveries()">
+          <option value="">Todas as classes</option>
+          <option>Arqueira</option>
+          <option>Bardo</option>
+          <option>Berserker</option>
+          <option>Lanceiro</option>
+          <option>Maga</option>
+        </select>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="deliveries-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Nick</th>
+              <th>Classe</th>
+              <th>Descrição da entrega</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="deliveries-body">
+            <!-- Preenchido via JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Relatório mensal (renderizado em tabela separada quando chamado) -->
+      <div class="card" id="monthly-report-card" style="margin-top:14px; display:none;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Relatório mensal de entregas</div>
+            <div class="card-sub">Resumo do que cada membro recebeu no mês selecionado.</div>
+          </div>
+        </div>
+        <div class="filters-row">
+          <input type="month" class="input" id="reportMonth" onchange="renderMonthlyReport()" />
+        </div>
+        <div class="table-wrapper">
+          <table id="monthly-report-table">
+            <thead>
+              <tr>
+                <th>Nick</th>
+                <th>Resumo de entregas</th>
+              </tr>
+            </thead>
+            <tbody id="monthly-report-body">
+              <!-- Preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA: REPOSITÓRIO DO CLÃ -->
+    <section class="card" id="tab-repo" style="display:none">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Repositório do clã</div>
+          <div class="card-sub">Anotações, regras, estratégias e tudo que o clã precisar.</div>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <button class="btn btn-primary" onclick="newRepoEntry()">+ Nova entrada</button>
+        <button class="btn btn-secondary" onclick="copyRepo()">Copiar</button>
+        <button class="btn btn-secondary" onclick="pasteRepo()">Colar</button>
+        <button class="btn btn-secondary" onclick="exportRepoToPDF()">Exportar PDF</button>
+        <label class="btn btn-secondary">
+          Importar PDF
+          <input type="file" accept="application/pdf" style="display:none" onchange="importPdfPlaceholder(event)">
+        </label>
+        <button class="btn btn-secondary" onclick="sendToDiscord('repositorio')">Enviar para o Discord</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="repo-table">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Data</th>
+              <th>Conteúdo</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="repo-body">
+            <!-- Preenchido via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- JS -->
+  <script>
+    // Estado em memória por clã
+    const state = {
+      clan: 1,
+      members: { 1: [], 2: [] },
+      events: { 1: [], 2: [] },
+      deliveries: { 1: [], 2: [] },
+      repo: { 1: [], 2: [] },
+      clipboardRepo: ''
+    };
+
+    function setClan(clan) {
+      state.clan = clan;
+      document.querySelectorAll('.clan-btn').forEach(btn => {
+        btn.classList.toggle('active', Number(btn.dataset.clan) === clan);
+      });
+      renderAll();
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+      });
+      document.querySelectorAll('section.card[id^="tab-"]').forEach(sec => {
+        sec.style.display = sec.id === 'tab-' + tab ? 'block' : 'none';
+      });
+      const titles = {
+        members: 'Membros',
+        events: 'Presença em eventos',
+        deliveries: 'Entregas',
+        repo: 'Repositório do clã'
+      };
+      document.getElementById('currentTabTitle').textContent = titles[tab] || '';
+    }
+
+    // Data atual
+    function updateDate() {
+      const now = new Date();
+      const format = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      document.getElementById('currentDate').textContent = 'Hoje: ' + format;
+    }
+
+    // ---------- MEMBROS ----------
+    function openMemberForm(existingIndex = null) {
+      const isEdit = existingIndex !== null;
+      const currentMembers = state.members[state.clan];
+      let defaultNick = '';
+      let defaultLevel = '';
+      let defaultPower = '';
+      let defaultClasse = 'Arqueira';
+
+      if (isEdit) {
+        const m = currentMembers[existingIndex];
+        defaultNick = m.nick;
+        defaultLevel = m.level;
+        defaultPower = m.power;
+        defaultClasse = m.classe;
+      }
+
+      const nick = prompt('Nick do membro:', defaultNick);
+      if (!nick) return;
+      const level = prompt('Level:', defaultLevel);
+      const power = prompt('Power:', defaultPower);
+      const classe = prompt('Classe (Arqueira, Bardo, Berserker, Maga ou Lanceiro):', defaultClasse);
+
+      const data = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+      if (isEdit) {
+        currentMembers[existingIndex] = { nick, level, power, classe, data };
+      } else {
+        currentMembers.push({ nick, level, power, classe, data });
+      }
+      renderMembers();
+    }
+
+    function deleteMember(index) {
+      if (!confirm('Excluir este membro?')) return;
+      state.members[state.clan].splice(index, 1);
+      renderMembers();
+    }
+
+    function renderMembers() {
+      const body = document.getElementById('members-body');
+      body.innerHTML = '';
+      const search = document.getElementById('searchMembers').value.toLowerCase();
+      const filterClass = document.getElementById('filterClass').value;
+      let list = [...state.members[state.clan]];
+
+      if (search) {
+        list = list.filter(m => m.nick.toLowerCase().includes(search));
+      }
+      if (filterClass) {
+        list = list.filter(m => m.classe === filterClass);
+      }
+
+      // ordem alfabética por nick
+      list.sort((a, b) => a.nick.localeCompare(b.nick, 'pt-BR'));
+
+      list.forEach((m, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${m.nick}</td>
+          <td>${m.level || ''}</td>
+          <td>${m.power || ''}</td>
+          <td>${m.classe || ''}</td>
+          <td>${m.data || ''}</td>
+          <td>
+            <div class="table-actions">
+              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="openMemberForm(${idx})">Editar</button>
+              <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="deleteMember(${idx})">Excluir</button>
+            </div>
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    // ---------- PRESENÇA EM EVENTOS ----------
+    function openEventPresenceForm(existingIndex = null) {
+      const isEdit = existingIndex !== null;
+      const currentEvents = state.events[state.clan];
+      let defNick = '';
+      let defEvento = 'Boss do clã';
+      let defStatus = 'Presente';
+      let defJust = '';
+      let defData = new Date().toISOString().slice(0, 10);
+
+      if (isEdit) {
+        const e = currentEvents[existingIndex];
+        defNick = e.nick;
+        defEvento = e.evento;
+        defStatus = e.status;
+        defJust = e.justificativa || '';
+        defData = e.data;
+      }
+
+      const data = prompt('Data (AAAA-MM-DD):', defData);
+      if (!data) return;
+      const evento = prompt('Evento (Guerra da coroa, Interserver, Boss do clã, Ilha de Sindri, Copa Ymir):', defEvento);
+      if (!evento) return;
+      const nick = prompt('Nick:', defNick);
+      if (!nick) return;
+      const status = prompt('Status (Presente, Faltou, Justificou):', defStatus);
+      let justificativa = defJust;
+      if (status === 'Faltou' || status === 'Justificou') {
+        justificativa = prompt('Justificativa (se houver):', justificativa) || '';
+      }
+
+      const record = { data, evento, nick, status, justificativa };
+
+      if (isEdit) {
+        currentEvents[existingIndex] = record;
+      } else {
+        currentEvents.push(record);
+      }
+      renderEvents();
+    }
+
+    function deleteEvent(index) {
+      if (!confirm('Excluir este registro de presença?')) return;
+      state.events[state.clan].splice(index, 1);
+      renderEvents();
+    }
+
+    function renderEvents() {
+      const body = document.getElementById('events-body');
+      body.innerHTML = '';
+      const filterEvent = document.getElementById('filterEvent').value;
+      const filterStatus = document.getElementById('filterStatus').value;
+
+      let list = [...state.events[state.clan]];
+
+      if (filterEvent) {
+        list = list.filter(e => e.evento === filterEvent);
+      }
+      if (filterStatus) {
+        list = list.filter(e => e.status === filterStatus);
+      }
+
+      // ordem alfabética: primeiro evento, depois nick
+      list.sort((a, b) => {
+        const ev = a.evento.localeCompare(b.evento, 'pt-BR');
+        if (ev !== 0) return ev;
+        return a.nick.localeCompare(b.nick, 'pt-BR');
+      });
+
+      list.forEach((e, idx) => {
+        let tagClass = 'tag-success';
+        if (e.status === 'Faltou') tagClass = 'tag-danger';
+        if (e.status === 'Justificou') tagClass = 'tag-warning';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${e.data}</td>
+          <td>${e.evento}</td>
+          <td>${e.nick}</td>
+          <td><span class="tag ${tagClass}">${e.status}</span></td>
+          <td>${e.justificativa || ''}</td>
+          <td>
+            <div class="table-actions">
+              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="openEventPresenceForm(${idx})">Editar</button>
+              <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="deleteEvent(${idx})">Excluir</button>
+            </div>
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    // ---------- ENTREGAS ----------
+    function openDeliveryForm(existingIndex = null) {
+      const isEdit = existingIndex !== null;
+      const current = state.deliveries[state.clan];
+      let defData = new Date().toISOString().slice(0, 10);
+      let defNick = '';
+      let defClasse = 'Arqueira';
+      let defDesc = '';
+
+      if (isEdit) {
+        const d = current[existingIndex];
+        defData = d.data;
+        defNick = d.nick;
+        defClasse = d.classe;
+        defDesc = d.descricao;
+      }
+
+      const data = prompt('Data (AAAA-MM-DD):', defData);
+      if (!data) return;
+      const nick = prompt('Nick:', defNick);
+      if (!nick) return;
+      const classe = prompt('Classe (Arqueira, Bardo, Berserker, Maga ou Lanceiro):', defClasse);
+      const descricao = prompt('Descrição da entrega:', defDesc);
+
+      const record = { data, nick, classe, descricao };
+
+      if (isEdit) {
+        current[existingIndex] = record;
+      } else {
+        current.push(record);
+      }
+      renderDeliveries();
+    }
+
+    function deleteDelivery(index) {
+      if (!confirm('Excluir esta entrega?')) return;
+      state.deliveries[state.clan].splice(index, 1);
+      renderDeliveries();
+    }
+
+    function renderDeliveries() {
+      const body = document.getElementById('deliveries-body');
+      body.innerHTML = '';
+      const searchNick = document.getElementById('searchDeliveriesNick').value.toLowerCase();
+      const filterClass = document.getElementById('filterDeliveriesClass').value;
+      let list = [...state.deliveries[state.clan]];
+
+      if (searchNick) {
+        list = list.filter(d => d.nick.toLowerCase().includes(searchNick));
+      }
+      if (filterClass) {
+        list = list.filter(d => d.classe === filterClass);
+      }
+
+      // ordem alfabética por nick
+      list.sort((a, b) => a.nick.localeCompare(b.nick, 'pt-BR'));
+
+      list.forEach((d, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${d.data}</td>
+          <td>${d.nick}</td>
+          <td>${d.classe}</td>
+          <td>${d.descricao || ''}</td>
+          <td>
+            <div class="table-actions">
+              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="openDeliveryForm(${idx})">Editar</button>
+              <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="deleteDelivery(${idx})">Excluir</button>
+            </div>
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    function showMonthlyReport() {
+      document.getElementById('monthly-report-card').style.display = 'block';
+      if (!document.getElementById('reportMonth').value) {
+        const now = new Date();
+        const ym = now.toISOString().slice(0, 7);
+        document.getElementById('reportMonth').value = ym;
+      }
+      renderMonthlyReport();
+    }
+
+    function renderMonthlyReport() {
+      const monthInput = document.getElementById('reportMonth').value;
+      const body = document.getElementById('monthly-report-body');
+      body.innerHTML = '';
+      if (!monthInput) return;
+
+      const [year, month] = monthInput.split('-');
+      const list = state.deliveries[state.clan].filter(d => {
+        return d.data && d.data.startsWith(year + '-' + month);
+      });
+
+      const byNick = {};
+      list.forEach(d => {
+        if (!byNick[d.nick]) byNick[d.nick] = [];
+        byNick[d.nick].push(d.descricao || '(sem descrição)');
+      });
+
+      const nicks = Object.keys(byNick).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+      nicks.forEach(nick => {
+        const tr = document.createElement('tr');
+        const resumo = byNick[nick].join(' • ');
+        tr.innerHTML = `
+          <td>${nick}</td>
+          <td>${resumo}</td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    // ---------- REPOSITÓRIO ----------
+    function newRepoEntry(existingIndex = null) {
+      const isEdit = existingIndex !== null;
+      const current = state.repo[state.clan];
+      let defTitulo = '';
+      let defConteudo = '';
+      let defData = new Date().toISOString().slice(0, 10);
+
+      if (isEdit) {
+        const r = current[existingIndex];
+        defTitulo = r.titulo;
+        defConteudo = r.conteudo;
+        defData = r.data;
+      }
+
+      const titulo = prompt('Título:', defTitulo);
+      if (!titulo) return;
+      const data = prompt('Data (AAAA-MM-DD):', defData);
+      if (!data) return;
+      const conteudo = prompt('Conteúdo:', defConteudo);
+
+      const record = { titulo, data, conteudo };
+
+      if (isEdit) {
+        current[existingIndex] = record;
+      } else {
+        current.push(record);
+      }
+      renderRepo();
+    }
+
+    function editRepo(index) {
+      newRepoEntry(index);
+    }
+
+    function deleteRepo(index) {
+      if (!confirm('Excluir esta entrada do repositório?')) return;
+      state.repo[state.clan].splice(index, 1);
+      renderRepo();
+    }
+
+    function copyRepo() {
+      const all = state.repo[state.clan]
+        .sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'))
+        .map(r => `• ${r.titulo} (${r.data}) - ${r.conteudo}`)
+        .join('\n');
+      state.clipboardRepo = all;
+      navigator.clipboard.writeText(all).catch(() => {});
+      alert('Repositório copiado (quando possível) para a área de transferência.');
+    }
+
+    function pasteRepo() {
+      if (!state.clipboardRepo) {
+        alert('Nada copiado internamente ainda.');
+        return;
+      }
+      alert('Conteúdo copiado internamente:\n\n' + state.clipboardRepo);
+    }
+
+    function renderRepo() {
+      const body = document.getElementById('repo-body');
+      body.innerHTML = '';
+      let list = [...state.repo[state.clan]];
+      list.sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'));
+
+      list.forEach((r, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.titulo}</td>
+          <td>${r.data}</td>
+          <td>${r.conteudo}</td>
+          <td>
+            <div class="table-actions">
+              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="editRepo(${idx})">Editar</button>
+              <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="deleteRepo(${idx})">Excluir</button>
+            </div>
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    // ---------- PDF ----------
+    function exportTableToPDF(tableId, nomeArquivoBase) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const table = document.getElementById(tableId);
+      if (!table) return;
+
+      doc.text(nomeArquivoBase.toUpperCase(), 14, 12);
+      doc.autoTable({ html: '#' + tableId, startY: 16 });
+      doc.save(nomeArquivoBase + '.pdf');
+    }
+
+    function exportRepoToPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const tableId = 'repo-table';
+      doc.text('REPOSITÓRIO DO CLÃ', 14, 12);
+      doc.autoTable({ html: '#' + tableId, startY: 16 });
+      doc.save('repositorio.pdf');
+    }
+
+    function importPdfPlaceholder(event) {
+      if (event.target.files && event.target.files[0]) {
+        alert('Importar PDF aqui é apenas um placeholder visual. A importação real exigiria backend ou leitura avançada de PDF.');
+      }
+    }
+
+    // ---------- DISCORD ----------
+    function sendToDiscord(tipo) {
+      // Para usar de verdade:
+      // 1. Crie um webhook no canal do Discord.
+      // 2. Troque a URL abaixo pela URL do seu webhook.
+      const webhookUrl = 'https://discord.com/api/webhooks/COLOQUE_AQUI_SEU_WEBHOOK';
+      const mensagem = `Atualização do painel Murders: ${tipo} (clã ${state.clan}).`;
+
+      // Exemplo simples de envio; pode ser comentado enquanto não tiver webhook:
+      /*
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: mensagem })
+      }).then(() => {
+        alert('Enviado para o Discord!');
+      }).catch(() => {
+        alert('Falha ao enviar para o Discord. Confira a URL do webhook.');
+      });
+      */
+      alert('Aqui vai o envio para Discord via webhook.\n\nMensagem simulada:\n' + mensagem);
+    }
+
+    // ---------- RENDER GERAL ----------
+    function renderAll() {
+      renderMembers();
+      renderEvents();
+      renderDeliveries();
+      renderRepo();
+      if (document.getElementById('monthly-report-card').style.display !== 'none') {
+        renderMonthlyReport();
+      }
+    }
+
+    // Inicialização
+    updateDate();
+    renderAll();
+  </script>
+</body>
+</html>
