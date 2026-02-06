@@ -115,10 +115,7 @@
         <button class="btn btn-secondary" type="button" onclick="exportPDF()">Exportar PDF da aba atual</button>
       </div>
 
-      <!-- input de arquivo JSON -->
       <input type="file" id="json-file-input" accept=".json,application/json" style="display:none">
-
-      <!-- input de arquivo PDF -->
       <input type="file" id="pdf-file-input" accept="application/pdf,.pdf" style="display:none">
     </div>
 
@@ -602,7 +599,7 @@
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tab);
       });
-      document.querySelectorAll('section.card[id^="tab-"], .tab[id^="tab-"]').forEach(sec => {
+      document.querySelectorAll('.tab').forEach(sec => {
         sec.style.display = sec.id === 'tab-' + tab ? 'block' : 'none';
       });
       const titles = {
@@ -740,7 +737,7 @@
     }
 
     function exportPDF() {
-      const activeTab = document.querySelector('.tab.active');
+      const activeTab = document.querySelector('.tab[style*="block"], .tab.active');
       if (!activeTab) {
         alert('Nenhuma aba ativa encontrada.');
         return;
