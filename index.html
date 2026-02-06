@@ -51,7 +51,7 @@
     }
 
     form textarea {
-      flex: 1 1 260px;
+      flex: 1 1 300px;
       min-height: 40px;
       resize: vertical;
     }
@@ -142,8 +142,7 @@
 
     <form id="presence-form">
       <input type="text" id="nick" placeholder="Nick" required />
-      <textarea id="eventos1" placeholder="Eventos 1" required></textarea>
-      <textarea id="eventos2" placeholder="Eventos 2 (opcional)"></textarea>
+      <textarea id="eventos" placeholder="Eventos" required></textarea>
       <input type="date" id="data" required />
       <button type="submit" class="btn-add">Adicionar presença</button>
     </form>
@@ -157,8 +156,7 @@
       <thead>
         <tr>
           <th>nick</th>
-          <th>Eventos 1</th>
-          <th>Eventos 2</th>
+          <th>Eventos</th>
           <th>data</th>
           <th>ações</th>
         </tr>
@@ -171,86 +169,41 @@
 
   <script>
     const form = document.getElementById('presence-form');
-    const tabela = document
-      .getElementById('presence-table')
-      .querySelector('tbody');
+    const tabela = document.getElementById('presence-table').querySelector('tbody');
     const btnClearAll = document.getElementById('clear-all');
-
-    const STORAGE_KEY = 'presencas';
-    const RESET_KEY = 'presencas_next_reset';
-
-    // Calcula o próximo domingo às 23:00
-    function getNextSunday23() {
-      const now = new Date();
-      const result = new Date(now);
-
-      const day = now.getDay(); // 0 = domingo
-      const diff = (7 - day) % 7; // dias até próximo domingo
-      result.setDate(now.getDate() + diff);
-      result.setHours(23, 0, 0, 0);
-
-      // Se já passou deste domingo 23h, vai para o próximo
-      if (result <= now) {
-        result.setDate(result.getDate() + 7);
-      }
-      return result.getTime();
-    }
-
-    // Verifica se passou do horário de reset e limpa se necessário
-    function checkWeeklyReset() {
-      const now = Date.now();
-      const nextResetStr = localStorage.getItem(RESET_KEY);
-
-      if (!nextResetStr) {
-        const next = getNextSunday23();
-        localStorage.setItem(RESET_KEY, String(next));
-        return;
-      }
-
-      const nextReset = Number(nextResetStr);
-      if (now >= nextReset) {
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.setItem(RESET_KEY, String(getNextSunday23()));
-      }
-    }
 
     // Carrega do localStorage ao iniciar
     function carregarPresencas() {
-      checkWeeklyReset();
-      const dados = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const dados = JSON.parse(localStorage.getItem('presencas') || '[]');
       tabela.innerHTML = '';
-      dados.forEach((item) => {
-        adicionarLinha(item.nick, item.eventos1, item.eventos2, item.data);
+      dados.forEach((item, index) => {
+        adicionarLinha(item.nick, item.eventos, item.data, index);
       });
     }
 
     // Salva lista no localStorage
     function salvarPresencas() {
       const linhas = Array.from(tabela.querySelectorAll('tr'));
-      const dados = linhas.map((tr) => {
+      const dados = linhas.map(tr => {
         const tds = tr.querySelectorAll('td');
         return {
           nick: tds[0].textContent,
-          eventos1: tds[1].textContent,
-          eventos2: tds[2].textContent,
-          data: tds[3].textContent,
+          eventos: tds[1].textContent,
+          data: tds[2].textContent
         };
       });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(dados));
+      localStorage.setItem('presencas', JSON.stringify(dados));
     }
 
     // Cria uma linha na tabela
-    function adicionarLinha(nick, eventos1, eventos2, data) {
+    function adicionarLinha(nick, eventos, data, index) {
       const tr = document.createElement('tr');
 
       const tdNick = document.createElement('td');
       tdNick.textContent = nick;
 
-      const tdEventos1 = document.createElement('td');
-      tdEventos1.textContent = eventos1;
-
-      const tdEventos2 = document.createElement('td');
-      tdEventos2.textContent = eventos2 || '';
+      const tdEventos = document.createElement('td');
+      tdEventos.textContent = eventos;
 
       const tdData = document.createElement('td');
       tdData.textContent = data;
@@ -269,8 +222,7 @@
       tdAcoes.appendChild(btnDel);
 
       tr.appendChild(tdNick);
-      tr.appendChild(tdEventos1);
-      tr.appendChild(tdEventos2);
+      tr.appendChild(tdEventos);
       tr.appendChild(tdData);
       tr.appendChild(tdAcoes);
 
@@ -281,13 +233,12 @@
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const nick = document.getElementById('nick').value.trim();
-      const eventos1 = document.getElementById('eventos1').value.trim();
-      const eventos2 = document.getElementById('eventos2').value.trim();
+      const eventos = document.getElementById('eventos').value.trim();
       const data = document.getElementById('data').value;
 
-      if (!nick || !eventos1 || !data) return;
+      if (!nick || !eventos || !data) return;
 
-      adicionarLinha(nick, eventos1, eventos2, data);
+      adicionarLinha(nick, eventos, data);
       salvarPresencas();
       form.reset();
     });
@@ -296,11 +247,11 @@
     btnClearAll.addEventListener('click', () => {
       if (confirm('Tem certeza que deseja apagar todas as presenças?')) {
         tabela.innerHTML = '';
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem('presencas');
       }
     });
 
-    // Inicializa carregando presenças salvas e checando reset semanal
+    // Inicializa carregando presenças salvas
     carregarPresencas();
   </script>
 </body>
