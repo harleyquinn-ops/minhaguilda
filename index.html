@@ -504,6 +504,19 @@
       repoItems: { 1: [], 2: [] }
     };
 
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          state = JSON.parse(raw);
+          console.log('✅ Estado carregado');
+        }
+      } catch (e) {
+        console.error('Erro ao carregar:', e);
+      }
+      renderAll();
+    }
+
     function saveState() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -589,8 +602,8 @@
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tab);
       });
-      document.querySelectorAll('.tab').forEach(sec => {
-        sec.classList.toggle('active', sec.id === 'tab-' + tab);
+      document.querySelectorAll('section.card[id^="tab-"], .tab[id^="tab-"]').forEach(sec => {
+        sec.style.display = sec.id === 'tab-' + tab ? 'block' : 'none';
       });
       const titles = {
         members: '👥 Membros',
@@ -599,15 +612,7 @@
         repo: '📂 Repositório',
         reports: '📈 Relatórios semanais'
       };
-      const descs = {
-        members: 'Controle de membros',
-        events: 'Registro de presenças em eventos',
-        deliveries: 'Controle de entregas por membro',
-        repo: 'Itens armazenados no repositório do clã',
-        reports: 'Resumos semanais de presença e entregas'
-      };
       document.getElementById('pageTitle').textContent = titles[tab] || '';
-      document.getElementById('pageDesc').textContent = descs[tab] || '';
       if (tab === 'reports') {
         buildWeekSelectors();
         renderWeeklyPresenceReport();
@@ -634,7 +639,6 @@
     }
 
     // IMPORT / EXPORT JSON
-
     function clickImportJSON() {
       const input = document.getElementById('json-file-input');
       if (!input) {
@@ -698,7 +702,6 @@
     }
 
     // IMPORT / EXPORT PDF
-
     function importPDF() {
       const input = document.getElementById('pdf-file-input');
       if (!input) {
@@ -717,8 +720,23 @@
         alert('Selecione um arquivo .pdf válido.');
         return;
       }
-      const url = URL.createObjectURL(file);
-      window.open(url, '_blank');
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const binary = e.target.result;
+        const container = document.getElementById('msgContainer');
+        const pre = document.createElement('pre');
+        pre.style.whiteSpace = 'pre-wrap';
+        pre.style.maxHeight = '300px';
+        pre.style.overflowY = 'auto';
+        pre.style.background = '#ecf0f1';
+        pre.style.padding = '10px';
+        pre.style.marginTop = '10px';
+        pre.textContent = 'Conteúdo bruto do PDF (pode sair desformatado):\n\n' + binary;
+        container.innerHTML = '<div class="success">PDF importado. Conteúdo lido abaixo:</div>';
+        container.appendChild(pre);
+      };
+      reader.readAsText(file);
     }
 
     function exportPDF() {
@@ -814,20 +832,27 @@
 
     function renderMembers() {
       const body = document.getElementById('members-body');
+      if (!body) return;
+
       body.innerHTML = '';
+
       const search = (document.getElementById('searchMembers')?.value || '').toLowerCase();
       const filterClass = document.getElementById('filterClass')?.value || '';
+
       let list = [...(state.members[state.clan] || [])];
-      if (search) list = list.filter(m => m.nick.toLowerCase().includes(search));
+
+      if (search) list = list.filter(m => (m.nick || '').toLowerCase().includes(search));
       if (filterClass) list = list.filter(m => m.classe === filterClass);
-      list.sort((a,b)=>a.nick.localeCompare(b.nick,'pt-BR'));
+
+      list.sort((a,b)=>(a.nick || '').localeCompare(b.nick || '','pt-BR'));
+
       list.forEach((m,idx)=>{
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>
             <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;background:none;border:none;color:#3498db;text-decoration:underline;cursor:pointer;"
-              onclick="openEventModal(null, '${m.nick}')">
-              ${m.nick}
+              onclick="openEventModal(null, '${m.nick || ''}')">
+              ${m.nick || ''}
             </button>
           </td>
           <td>${m.level || ''}</td>
@@ -842,6 +867,7 @@
           </td>`;
         body.appendChild(tr);
       });
+
       if (!list.length) {
         const tr=document.createElement('tr');
         tr.innerHTML='<td colspan="6">Nenhum membro cadastrado.</td>';
@@ -859,8 +885,7 @@
 
     function fillEventNickOptions(selectedNick = '') {
       const select = document.getElementById('event-nick');
-      select.innerHTML = '<option value="">-- Selecione --</option>' + 
-        [...(state.members[state.clan] || [])]
+      select.innerHTML = '<option value="">-- Selecione --</option>' + [...(state.members[state.clan] || [])]
         .sort((a,b) => a.nick.localeCompare(b.nick,'pt-BR'))
         .map(m => `<option value="${m.nick}" ${m.nick === selectedNick ? 'selected' : ''}>${m.nick}</option>`)
         .join('');
@@ -1375,19 +1400,6 @@
       buildWeekSelectors();
       renderWeeklyPresenceReport();
       renderWeeklyDeliveriesReport();
-    }
-
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          state = JSON.parse(raw);
-          console.log('✅ Estado carregado');
-        }
-      } catch (e) {
-        console.error('Erro ao carregar:', e);
-      }
-      renderAll();
     }
 
     window.addEventListener('load', loadState);
