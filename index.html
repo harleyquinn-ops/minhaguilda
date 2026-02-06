@@ -620,6 +620,8 @@
 
       <div class="actions-row">
         <button class="btn btn-primary" onclick="openEventModal()">+ Registrar presença</button>
+        <button class="btn btn-danger" onclick="clearEventsForSelectedDay()">Apagar</button>
+        <button class="btn btn-danger" onclick="clearAllEvents()">Apagar tudo</button>
         <button class="btn btn-secondary" onclick="sendToDiscord('presencas')">Enviar para o Discord</button>
       </div>
 
@@ -763,9 +765,7 @@
           </div>
           <div class="actions-row" style="margin-top:8px;">
             <button class="btn btn-primary" onclick="addRepoItem()">Salvar item</button>
-            <button class="btn btn-danger" onclick="clearRepo()">
-              Limpar repositório
-            </button>
+            <button class="btn btn-danger" onclick="clearRepo()">Limpar repositório</button>
             <label class="btn btn-secondary">
               Importar PDF
               <input type="file" accept="application/pdf" style="display:none"
@@ -792,9 +792,7 @@
               placeholder="Cole aqui o texto igual vem do jogo.&#10;Ex:&#10;Baú de Esboço da Batalha de Servidores    5    Batalha de Servidores    2026.02.03 20:18:27 UTC-3"></textarea>
           </div>
           <div class="actions-row" style="margin-top:8px;">
-            <button class="btn btn-primary" onclick="importRepoFromText()">
-              Importar itens (texto)
-            </button>
+            <button class="btn btn-primary" onclick="importRepoFromText()">Importar itens (texto)</button>
           </div>
         </div>
       </div>
@@ -925,8 +923,19 @@
           </select>
         </div>
         <div class="form-group">
+          <label for="event-name-2">Outro evento (mesmo dia, opcional)</label>
+          <select id="event-name-2" class="select">
+            <option value="">Nenhum</option>
+            <option>Boss do clã</option>
+            <option>Copa Ymir</option>
+            <option>Guerra da coroa</option>
+            <option>Ilha de Sindri</option>
+            <option>Interserver</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label for="event-nick">Nick</label>
-          <span id="event-nick" class="input" style="display:inline-block; border:none; padding-left:0;"></span>
+          <input id="event-nick" class="input" placeholder="Nick do membro" />
         </div>
         <div class="form-group">
           <label for="event-status">Status</label>
@@ -1222,12 +1231,7 @@
       list.forEach((m,idx)=>{
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>
-            <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;"
-              onclick="openEventModal(null, '${m.nick.replace(/'/g,"\\'")}')">
-              ${m.nick}
-            </button>
-          </td>
+          <td>${m.nick}</td>
           <td>${m.level || ''}</td>
           <td>${m.power || ''}</td>
           <td>${m.classe || ''}</td>
@@ -1319,57 +1323,87 @@
     }
 
     // ---- PRESENÇA ----
-    function openEventModal(index = null, nickFromClick = null) {
+    function openEventModal(index = null) {
       document.getElementById('event-index').value = index !== null ? index : '';
       document.getElementById('event-modal-title').textContent = index !== null ? 'Editar presença' : 'Registrar presença';
-
-      const nickSpan = document.getElementById('event-nick');
-
+      const secondSelect = document.getElementById('event-name-2');
       if (index !== null) {
         const e = state.events[state.clan][index];
         if (!e) return;
         document.getElementById('event-date').value = toBRFromISO(e.data) || todayBR();
         document.getElementById('event-name').value = e.evento;
-        nickSpan.textContent = e.nick;
+        document.getElementById('event-nick').value = e.nick;
         document.getElementById('event-status').value = e.status;
         document.getElementById('event-just').value = e.justificativa || '';
+        if (secondSelect) secondSelect.value = '';
       } else {
         document.getElementById('event-date').value = todayBR();
         document.getElementById('event-name').value = 'Boss do clã';
-        nickSpan.textContent = nickFromClick || '';
+        document.getElementById('event-nick').value = '';
         document.getElementById('event-status').value = 'Presente';
         document.getElementById('event-just').value = '';
+        if (secondSelect) secondSelect.value = '';
       }
       openModal('event-modal');
     }
     function closeEventModal() { closeModal('event-modal'); }
-
     function saveEvent() {
       const idxStr = document.getElementById('event-index').value;
       const dataBR = document.getElementById('event-date').value.trim() || todayBR();
       const evento = document.getElementById('event-name').value;
-      const nick = (document.getElementById('event-nick').textContent || '').trim();
+      const evento2 = document.getElementById('event-name-2') ? document.getElementById('event-name-2').value : '';
+      const nick = document.getElementById('event-nick').value.trim();
       const status = document.getElementById('event-status').value;
       const justificativa = document.getElementById('event-just').value.trim();
-      if (!nick) { alert('Nick é obrigatório. Abra o registro clicando no membro.'); return; }
+      if (!nick) { alert('Nick é obrigatório.'); return; }
       const dataISO = toISOFromBR(dataBR);
-      const record = { data: dataISO, evento, nick, status, justificativa };
       const list = state.events[state.clan];
 
       if (idxStr !== '') {
         const idx = parseInt(idxStr,10);
-        if (!Number.isNaN(idx) && list[idx]) list[idx] = record;
-      } else {
-        list.push(record);
+        const old = list[idx];
+        if (old) {
+          const dataAlvo = old.data;
+          const nickAlvo = old.nick;
+          state.events[state.clan] = list.filter(e => !(e.data === dataAlvo && e.nick === nickAlvo));
+        }
       }
+
+      list.push({ data: dataISO, evento, nick, status, justificativa });
+      if (evento2) {
+        list.push({ data: dataISO, evento: evento2, nick, status, justificativa });
+      }
+
       saveState();
       closeEventModal();
       renderEvents();
     }
-
     function deleteEvent(index) {
       if (!confirm('Excluir este registro de presença?')) return;
       state.events[state.clan].splice(index,1);
+      saveState();
+      renderEvents();
+      buildWeekSelectors();
+    }
+
+    function clearEventsForSelectedDay() {
+      const dataBR = prompt('Informe a data para apagar as presenças (dd/mm/aaaa):');
+      if (!dataBR) return;
+      const dataISO = toISOFromBR(dataBR);
+      if (!dataISO) {
+        alert('Data inválida.');
+        return;
+      }
+      if (!confirm(`Apagar TODAS as presenças deste clã na data ${dataBR}?`)) return;
+      state.events[state.clan] = (state.events[state.clan] || []).filter(e => e.data !== dataISO);
+      saveState();
+      renderEvents();
+      buildWeekSelectors();
+    }
+
+    function clearAllEvents() {
+      if (!confirm('Tem certeza que quer apagar TODAS as presenças deste clã? Não dá para desfazer.')) return;
+      state.events[state.clan] = [];
       saveState();
       renderEvents();
       buildWeekSelectors();
@@ -1379,52 +1413,66 @@
       const body = document.getElementById('events-body');
       if (!body) return;
       body.innerHTML = '';
-
       const filterEvent = document.getElementById('filterEvent')?.value || '';
       const filterStatus = document.getElementById('filterStatus')?.value || '';
-
       let list = [...(state.events[state.clan] || [])];
-      if (filterEvent) list = list.filter(e => e.evento === filterEvent);
-      if (filterStatus) list = list.filter(e => e.status === filterStatus);
+      if (filterEvent) list = list.filter(e=>e.evento===filterEvent);
+      if (filterStatus) list = list.filter(e=>e.status===filterStatus);
 
-      list.sort((a, b) => {
-        const d = (a.data || '').localeCompare(b.data || '');
-        if (d !== 0) return d;
-        return a.nick.localeCompare(b.nick, 'pt-BR');
+      const grouped = {};
+      list.forEach(e=>{
+        const key = `${e.nick}|||${e.data}`;
+        if (!grouped[key]) {
+          grouped[key] = { nick:e.nick, data:e.data, presentes:[], faltas:[], justificadas:[] };
+        }
+        if (e.status==='Presente') grouped[key].presentes.push(e.evento);
+        else if (e.status==='Faltou') grouped[key].faltas.push(e.evento);
+        else if (e.status==='Justificou') grouped[key].justificadas.push(e.evento);
       });
 
-      list.forEach((e, idx) => {
+      let rows = Object.values(grouped);
+      rows.sort((a,b)=>{
+        const n = a.nick.localeCompare(b.nick,'pt-BR');
+        if (n!==0) return n;
+        return (a.data||'').localeCompare(b.data||'');
+      });
+
+      rows.forEach(group=>{
+        const presentesStr = group.presentes.join(', ');
+        const faltasStr = group.faltas.join(', ');
+        const justStr = group.justificadas.join(', ');
         let resumo = '';
-        if (e.status === 'Presente') resumo = `Presente no evento: ${e.evento}.`;
-        else if (e.status === 'Faltou') resumo = `Faltou no evento: ${e.evento}.`;
-        else if (e.status === 'Justificou') resumo = `Justificou no evento: ${e.evento}.`;
+        if (presentesStr) resumo += `Foi aos eventos: ${presentesStr}. `;
+        if (faltasStr) resumo += `Faltou em: ${faltasStr}. `;
+        if (justStr) resumo += `Justificou em: ${justStr}.`;
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${toBRFromISO(e.data)}</td>
+          <td>${toBRFromISO(group.data)}</td>
           <td>${resumo}</td>
-          <td>${e.nick}</td>
+          <td>${group.nick}</td>
           <td>
             <div class="table-actions">
               <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;"
-                onclick="openEventModal(${idx})">
+                onclick="editEventsByGroup('${group.nick.replace(/'/g,"\\'")}', '${group.data}')">
                 Ver / editar
-              </button>
-              <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;"
-                onclick="deleteEvent(${idx})">
-                Apagar
               </button>
             </div>
           </td>`;
         body.appendChild(tr);
       });
 
-      if (!list.length) {
+      if (rows.length===0) {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td colspan="4">Nenhuma presença registrada com esses filtros.</td>`;
         body.appendChild(tr);
       }
-
       buildWeekSelectors();
+    }
+    function editEventsByGroup(nick, isoDate) {
+      const list = state.events[state.clan];
+      const idx = list.findIndex(e=>e.nick===nick && e.data===isoDate);
+      if (idx===-1) { alert('Não foi possível localizar o registro para edição.'); return; }
+      openEventModal(idx);
     }
 
     // ---- ENTREGAS ----
@@ -1739,4 +1787,353 @@
 
         saveState();
         renderRepo();
-        alert('Importação de repositório via PDF concluída
+        alert('Importação de repositório via PDF concluída.');
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao ler o PDF do repositório.');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    async function importRepoFromJSON(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!Array.isArray(data)) {
+          alert('JSON inválido: esperado um array de itens.');
+          return;
+        }
+        state.repoItems[state.clan] = data.map(r => ({
+          item: String(r.item || '').trim(),
+          tipo: String(r.tipo || ''),
+          boss: String(r.boss || ''),
+          qtd: Number(r.qtd || 0)
+        }));
+        saveState();
+        renderRepo();
+        alert('Importação de repositório via JSON concluída.');
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao ler JSON do repositório.');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    function deleteRepoItem(index) {
+      const list = state.repoItems[state.clan] || [];
+      if (!list[index]) return;
+      if (!confirm(`Remover o item "${list[index].item}" do repositório?`)) return;
+      list.splice(index, 1);
+      saveState();
+      renderRepo();
+    }
+
+    // ---- RELATÓRIOS SEMANAIS ----
+    function buildWeekSelectors(){
+      const presenceSelect=document.getElementById('weekPresenceSelect');
+      const deliveriesSelect=document.getElementById('weekDeliveriesSelect');
+      if(!presenceSelect||!deliveriesSelect)return;
+
+      const events=state.events[state.clan] || [];
+      const presMap={};
+      events.forEach(e=>{
+        const d=parseISO(e.data);
+        if(!d)return;
+        const key=weekKeyFromDate(d);
+        if(!presMap[key]){
+          const range=getWeekRange(d);
+          presMap[key]={start:range.start,end:range.end};
+        }
+      });
+      const presWeeks=Object.keys(presMap)
+        .map(k=>({key:k,start:presMap[k].start,end:presMap[k].end}))
+        .sort((a,b)=>a.start-b.start);
+      presenceSelect.innerHTML='';
+      presWeeks.forEach(w=>{
+        const opt=document.createElement('option');
+        opt.value=w.key;
+        opt.textContent=`${w.key} (${formatDateBRFromDate(w.start)} - ${formatDateBRFromDate(w.end)})`;
+        presenceSelect.appendChild(opt);
+      });
+
+      const delivs=state.deliveries[state.clan] || [];
+      const delMap={};
+      delivs.forEach(d=>{
+        const dt=parseISO(d.data);
+        if(!dt)return;
+        const key=weekKeyFromDate(dt);
+        if(!delMap[key]){
+          const range=getWeekRange(dt);
+          delMap[key]={start:range.start,end:range.end};
+        }
+      });
+      const delWeeks=Object.keys(delMap)
+        .map(k=>({key:k,start:delMap[k].start,end:delMap[k].end}))
+        .sort((a,b)=>a.start-b.start);
+      deliveriesSelect.innerHTML='';
+      delWeeks.forEach(w=>{
+        const opt=document.createElement('option');
+        opt.value=w.key;
+        opt.textContent=`${w.key} (${formatDateBRFromDate(w.start)} - ${formatDateBRFromDate(w.end)})`;
+        deliveriesSelect.appendChild(opt);
+      });
+
+      if(presWeeks.length && !presenceSelect.value) presenceSelect.value=presWeeks[presWeeks.length-1].key;
+      if(delWeeks.length && !deliveriesSelect.value) deliveriesSelect.value=delWeeks[delWeeks.length-1].key;
+    }
+
+    function aggregateWeeklyPresence(weekKey){
+      const events=state.events[state.clan] || [];
+      const refDate=parseISO(weekKey);
+      if(!refDate)return {range:null, entries:[], text:''};
+      const range=getWeekRange(refDate);
+      const filtered=events.filter(e=>{
+        const d=parseISO(e.data);
+        if(!d)return false;
+        return d>=range.start && d<=range.end;
+      });
+      const members={};
+      filtered.forEach(e=>{
+        const nick=e.nick;
+        const d=parseISO(e.data);
+        if(!members[nick]) members[nick]={dates:{}};
+        const dKey=formatDateBRFromDate(d);
+        if(!members[nick].dates[dKey]) members[nick].dates[dKey]={presentes:[],faltas:[],justificadas:[]};
+        const bucket=members[nick].dates[dKey];
+        if(e.status==='Presente') bucket.presentes.push(e.evento);
+        else if(e.status==='Faltou') bucket.faltas.push(e.evento);
+        else if(e.status==='Justificou') bucket.justificadas.push(e.evento);
+      });
+      const entries=Object.keys(members).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(name=>{
+        const dates=Object.keys(members[name].dates).sort((a,b)=>{
+          const pa=a.split('/').reverse().join('-');
+          const pb=b.split('/').reverse().join('-');
+          return pa.localeCompare(pb);
+        }).map(ds=>{
+          const info=members[name].dates[ds];
+          return {dateStr:ds, presentes:info.presentes, faltas:info.faltas, justificadas:info.justificadas};
+        });
+        return {name,dates};
+      });
+      let text=`PRESENÇA DA SEMANA (${formatDateBRFromDate(range.start)} - ${formatDateBRFromDate(range.end)})\n\n`;
+      entries.forEach(m=>{
+        text+=`${m.name}\n`;
+        m.dates.forEach(d=>{
+          const pres=d.presentes.length?`Foi em: ${d.presentes.join(', ')}`:'';
+          const falt=d.faltas.length?`Faltou em: ${d.faltas.join(', ')}`:'';
+          const jus=d.justificadas.length?`Justificou: ${d.justificadas.join(', ')}`:'';
+          const parts=[pres,falt,jus].filter(Boolean).join(' | ');
+          text+=` - ${d.dateStr}: ${parts}\n`;
+        });
+        text+='\n';
+      });
+      if(!filtered.length) text+='Sem registros de presença nessa semana.\n';
+      return {range,entries,text};
+    }
+
+    function renderWeeklyPresenceReport(){
+      const sel=document.getElementById('weekPresenceSelect');
+      const container=document.getElementById('weekly-presence-content');
+      if (!container) return;
+      container.innerHTML='';
+      if(!sel || !sel.value){
+        container.innerHTML='<div class="empty">Nenhuma semana disponível.</div>';
+        return;
+      }
+      const agg=aggregateWeeklyPresence(sel.value);
+      if(!agg.entries.length){
+        container.innerHTML='<div class="empty">Sem registros de presença nessa semana.</div>';
+        return;
+      }
+      agg.entries.forEach(m=>{
+        const div=document.createElement('div');
+        div.className='history-member';
+        const h=document.createElement('h4');
+        h.textContent=m.name;
+        div.appendChild(h);
+        const dates=document.createElement('div');
+        dates.className='history-dates';
+        m.dates.forEach(d=>{
+          const pres=d.presentes.length?`Foi em: ${d.presentes.join(', ')}`:'';
+          const falt=d.faltas.length?`Faltou em: ${d.faltas.join(', ')}`:'';
+          const jus=d.justificadas.length?`Justificou: ${d.justificadas.join(', ')}`:'';
+          const parts=[pres,falt,jus].filter(Boolean).join(' | ');
+          const p=document.createElement('div');
+          p.textContent=`${d.dateStr}: ${parts}`;
+          dates.appendChild(p);
+        });
+        div.appendChild(dates);
+        container.appendChild(div);
+      });
+    }
+
+    function copyWeeklyPresenceText(){
+      const sel=document.getElementById('weekPresenceSelect');
+      if(!sel || !sel.value){alert('Selecione uma semana primeiro.');return;}
+      const agg=aggregateWeeklyPresence(sel.value);
+      navigator.clipboard.writeText(agg.text).then(()=>{
+        alert('Relatório de presença copiado para a área de transferência.');
+      }).catch(()=>{
+        alert('Não foi possível copiar automaticamente. Selecione o texto manualmente.');
+      });
+    }
+
+    function aggregateWeeklyDeliveries(weekKey){
+      const delivs=state.deliveries[state.clan] || [];
+      const refDate=parseISO(weekKey);
+      if(!refDate)return {range:null,entries:[],text:''};
+      const range=getWeekRange(refDate);
+      const filtered=delivs.filter(d=>{
+        const dt=parseISO(d.data);
+        if(!dt) return false;
+        return dt>=range.start && dt<=range.end;
+      });
+      const members={};
+      filtered.forEach(d=>{
+        const nick=d.nick;
+        const dt=parseISO(d.data);
+        if(!members[nick]) members[nick]={dates:{}};
+        const dKey=formatDateBRFromDate(dt);
+        if(!members[nick].dates[dKey]) members[nick].dates[dKey]=[];
+        members[nick].dates[dKey].push(d.descricao || '(sem descrição)');
+      });
+      const entries=Object.keys(members).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(name=>{
+        const dates=Object.keys(members[name].dates).sort((a,b)=>{
+          const pa=a.split('/').reverse().join('-');
+          const pb=b.split('/').reverse().join('-');
+          return pa.localeCompare(pb);
+        }).map(ds=>({dateStr:ds,entregas:members[name].dates[ds]}));
+        return {name,dates};
+      });
+      let text=`ENTREGAS DA SEMANA (${formatDateBRFromDate(range.start)} - ${formatDateBRFromDate(range.end)})\n\n`;
+      entries.forEach(m=>{
+        text+=`${m.name}\n`;
+        m.dates.forEach(d=>{
+          text+=` - ${d.dateStr}: ${d.entregas.join(' • ')}\n`;
+        });
+        text+='\n';
+      });
+      if(!filtered.length) text+='Sem entregas registradas nessa semana.\n';
+      return {range,entries,text};
+    }
+
+    function renderWeeklyDeliveriesReport(){
+      const sel=document.getElementById('weekDeliveriesSelect');
+      const container=document.getElementById('weekly-deliveries-content');
+      if (!container) return;
+      container.innerHTML='';
+      if(!sel || !sel.value){
+        container.innerHTML='<div class="empty">Nenhuma semana disponível.</div>';
+        return;
+      }
+      const agg=aggregateWeeklyDeliveries(sel.value);
+      if(!agg.entries.length){
+        container.innerHTML='<div class="empty">Sem entregas nessa semana.</div>';
+        return;
+      }
+      agg.entries.forEach(m=>{
+        const div=document.createElement('div');
+        div.className='history-member';
+        const h=document.createElement('h4');
+        h.textContent=m.name;
+        div.appendChild(h);
+        const dates=document.createElement('div');
+        dates.className='history-dates';
+        m.dates.forEach(d=>{
+          const p=document.createElement('div');
+          p.textContent=`${d.dateStr}: ${d.entregas.join(' • ')}`;
+          dates.appendChild(p);
+        });
+        div.appendChild(dates);
+        container.appendChild(div);
+      });
+    }
+
+    function copyWeeklyDeliveriesText(){
+      const sel=document.getElementById('weekDeliveriesSelect');
+      if(!sel || !sel.value){alert('Selecione uma semana primeiro.');return;}
+      const agg=aggregateWeeklyDeliveries(sel.value);
+      navigator.clipboard.writeText(agg.text).then(()=>{
+        alert('Relatório de entregas copiado para a área de transferência.');
+      }).catch(()=>{
+        alert('Não foi possível copiar automaticamente. Selecione o texto manualmente.');
+      });
+    }
+
+    // ---- PDF EXPORT (MEMBROS) ----
+    function exportTableToPDF(tableId, titulo) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const table = document.getElementById(tableId);
+      if (!table) {
+        alert('Tabela não encontrada.');
+        return;
+      }
+      doc.setFontSize(14);
+      doc.text(`Clã Murders ${state.clan} - ${titulo}`, 14, 16);
+      const head = [];
+      const body = [];
+      const ths = table.querySelectorAll('thead tr th');
+      ths.forEach(th => head.push(th.innerText));
+      const rows = table.querySelectorAll('tbody tr');
+      rows.forEach(row => {
+        const rowData = [];
+        row.querySelectorAll('td').forEach(td => rowData.push(td.innerText));
+        body.push(rowData);
+      });
+      doc.autoTable({
+        head: [head],
+        body,
+        startY: 22,
+        styles: { fontSize: 8 }
+      });
+      doc.save(`${titulo}-clan${state.clan}.pdf`);
+    }
+
+    // ---- RESET SEMANAL DE PRESENÇA (DOMINGO 23h) ----
+    const WEEKLY_RESET_KEY = 'murders-weekly-reset-v1';
+    function maybeWeeklyReset() {
+      const now = new Date();
+      const lastResetStr = localStorage.getItem(WEEKLY_RESET_KEY);
+      const lastReset = lastResetStr ? new Date(lastResetStr) : null;
+
+      if (now.getDay() !== 0 || now.getHours() !== 23) return;
+
+      if (lastReset && now.toDateString() === lastReset.toDateString()) return;
+
+      state.events[state.clan] = [];
+      saveState();
+      buildWeekSelectors();
+      renderEvents();
+
+      localStorage.setItem(WEEKLY_RESET_KEY, now.toISOString());
+    }
+
+    // ---- RENDER GERAL ----
+    function renderAll(){
+      renderMembers();
+      renderEvents();
+      renderDeliveries();
+      renderRepo();
+      buildWeekSelectors();
+      renderWeeklyPresenceReport();
+      renderWeeklyDeliveriesReport();
+      loadWebhookToInput();
+    }
+
+    // ---- INIT ----
+    document.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      initTheme();
+      setupThemeToggle();
+      updateDate();
+      renderAll();
+      setInterval(maybeWeeklyReset, 60 * 1000);
+    });
+  </script>
+</body>
+</html>
