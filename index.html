@@ -176,9 +176,48 @@
       .querySelector('tbody');
     const btnClearAll = document.getElementById('clear-all');
 
+    const STORAGE_KEY = 'presencas';
+    const RESET_KEY = 'presencas_next_reset';
+
+    // Calcula o próximo domingo às 23:00
+    function getNextSunday23() {
+      const now = new Date();
+      const result = new Date(now);
+
+      const day = now.getDay(); // 0 = domingo
+      const diff = (7 - day) % 7; // dias até próximo domingo
+      result.setDate(now.getDate() + diff);
+      result.setHours(23, 0, 0, 0);
+
+      // Se já passou deste domingo 23h, vai para o próximo
+      if (result <= now) {
+        result.setDate(result.getDate() + 7);
+      }
+      return result.getTime();
+    }
+
+    // Verifica se passou do horário de reset e limpa se necessário
+    function checkWeeklyReset() {
+      const now = Date.now();
+      const nextResetStr = localStorage.getItem(RESET_KEY);
+
+      if (!nextResetStr) {
+        const next = getNextSunday23();
+        localStorage.setItem(RESET_KEY, String(next));
+        return;
+      }
+
+      const nextReset = Number(nextResetStr);
+      if (now >= nextReset) {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.setItem(RESET_KEY, String(getNextSunday23()));
+      }
+    }
+
     // Carrega do localStorage ao iniciar
     function carregarPresencas() {
-      const dados = JSON.parse(localStorage.getItem('presencas') || '[]');
+      checkWeeklyReset();
+      const dados = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       tabela.innerHTML = '';
       dados.forEach((item) => {
         adicionarLinha(item.nick, item.eventos1, item.eventos2, item.data);
@@ -197,7 +236,7 @@
           data: tds[3].textContent,
         };
       });
-      localStorage.setItem('presencas', JSON.stringify(dados));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(dados));
     }
 
     // Cria uma linha na tabela
@@ -246,7 +285,7 @@
       const eventos2 = document.getElementById('eventos2').value.trim();
       const data = document.getElementById('data').value;
 
-      if (!nick || !eventos1 || !data) return; // eventos2 é opcional
+      if (!nick || !eventos1 || !data) return;
 
       adicionarLinha(nick, eventos1, eventos2, data);
       salvarPresencas();
@@ -257,11 +296,11 @@
     btnClearAll.addEventListener('click', () => {
       if (confirm('Tem certeza que deseja apagar todas as presenças?')) {
         tabela.innerHTML = '';
-        localStorage.removeItem('presencas');
+        localStorage.removeItem(STORAGE_KEY);
       }
     });
 
-    // Inicializa carregando presenças salvas
+    // Inicializa carregando presenças salvas e checando reset semanal
     carregarPresencas();
   </script>
 </body>
