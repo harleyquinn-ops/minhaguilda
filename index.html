@@ -425,11 +425,13 @@
 
     .modal {
       width: 100%;
-      max-width: 520px;
+      max-width: 920px;
       background: var(--card-bg);
       border-radius: 14px;
       padding: 16px 18px 14px;
       box-shadow: 0 14px 40px rgba(15, 23, 42, 0.55);
+      max-height: 90vh;
+      overflow: auto;
     }
 
     .modal-header {
@@ -468,6 +470,30 @@
       display: flex;
       justify-content: flex-end;
       gap: 8px;
+    }
+
+    .history-member {
+      border-bottom: 1px solid var(--table-border);
+      padding: 10px 0;
+    }
+
+    .history-member h4 {
+      margin: 0 0 6px 0;
+      font-size: 1rem;
+      color: var(--azul-escuro);
+    }
+
+    .history-dates {
+      margin: 6px 0 0 0;
+      padding-left: 14px;
+      font-size: 12px;
+      color: var(--muted-text);
+    }
+
+    .empty {
+      color: var(--muted-text);
+      padding: 12px 0;
+      font-size: 13px;
     }
 
     @media (max-width: 900px) {
@@ -512,13 +538,16 @@
           <span><span class="nav-icon">D</span>Entregas</span>
         </button>
         <button class="nav-btn" data-tab="repo" onclick="switchTab('repo')">
-          <span><span class="nav-icon">R</span>Repositório do clã</span>
+          <span><span class="nav-icon">R</span>Repositório</span>
+        </button>
+        <button class="nav-btn" data-tab="reports" onclick="switchTab('reports')">
+          <span><span class="nav-icon">S</span>Relatórios semanais</span>
         </button>
       </div>
     </div>
 
     <div class="sidebar-footer">
-      Tudo salvo no navegador por clã. Ideal para organizar Murders 1 e Murders 2. [file:16]
+      Tudo salvo no navegador por clã; inspirado no seu painel antigo, mas com layout novo. [file:16]
     </div>
   </aside>
 
@@ -527,7 +556,7 @@
     <header class="topbar">
       <div>
         <div class="topbar-title" id="currentTabTitle">Membros</div>
-        <div class="topbar-sub">Controle de membros, presença, entregas e repositório em um só lugar.</div>
+        <div class="topbar-sub">Controle de membros, presença, entregas, repositório e relatórios semanais.</div>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
         <button id="theme-toggle" class="theme-toggle">
@@ -712,12 +741,12 @@
       </div>
     </section>
 
-    <!-- ABA: REPOSITÓRIO DO CLÃ -->
+    <!-- ABA: REPOSITÓRIO -->
     <section class="card" id="tab-repo" style="display:none">
       <div class="card-header">
         <div>
           <div class="card-title">Repositório do clã</div>
-          <div class="card-sub">Estoque do clã, em ordem alfabética por item.</div>
+          <div class="card-sub">Estoque, em ordem alfabética, com quantidade na frente.</div>
         </div>
       </div>
 
@@ -748,11 +777,55 @@
         </table>
       </div>
     </section>
+
+    <!-- ABA: RELATÓRIOS SEMANAIS -->
+    <section class="card" id="tab-reports" style="display:none">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Relatórios semanais</div>
+          <div class="card-sub">Resumo por semana de presença e entregas, estilo histórico do seu painel antigo.</div>
+        </div>
+      </div>
+
+      <div class="filters-row">
+        <div>
+          <strong>Semana de presença:</strong>
+          <select id="weekPresenceSelect" class="select" onchange="renderWeeklyPresenceReport()"></select>
+        </div>
+        <div>
+          <strong>Semana de entregas:</strong>
+          <select id="weekDeliveriesSelect" class="select" onchange="renderWeeklyDeliveriesReport()"></select>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:10px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Presença na semana</div>
+            <div class="card-sub">Eventos somados por jogador na semana selecionada.</div>
+          </div>
+          <button class="btn btn-secondary" onclick="copyWeeklyPresenceText()">Copiar texto</button>
+        </div>
+        <div id="weekly-presence-content"></div>
+      </div>
+
+      <div class="card" style="margin-top:10px;">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Entregas na semana</div>
+            <div class="card-sub">Entregas somadas por jogador na semana selecionada.</div>
+          </div>
+          <button class="btn btn-secondary" onclick="copyWeeklyDeliveriesText()">Copiar texto</button>
+        </div>
+        <div id="weekly-deliveries-content"></div>
+      </div>
+    </section>
   </main>
 
-  <!-- MODAL MEMBROS -->
+  <!-- MODAIS (iguais à versão anterior) -->
+  <!-- MEMBROS -->
   <div class="modal-overlay" id="member-modal">
-    <div class="modal">
+    <div class="modal" style="max-width:520px;">
       <div class="modal-header">
         <div class="modal-title" id="member-modal-title">Novo membro</div>
         <button class="btn btn-secondary" onclick="closeMemberModal()">Fechar</button>
@@ -793,9 +866,9 @@
     </div>
   </div>
 
-  <!-- MODAL PRESENÇA -->
+  <!-- PRESENÇA -->
   <div class="modal-overlay" id="event-modal">
-    <div class="modal">
+    <div class="modal" style="max-width:520px;">
       <div class="modal-header">
         <div class="modal-title" id="event-modal-title">Registrar presença</div>
         <button class="btn btn-secondary" onclick="closeEventModal()">Fechar</button>
@@ -840,9 +913,9 @@
     </div>
   </div>
 
-  <!-- MODAL ENTREGAS -->
+  <!-- ENTREGAS -->
   <div class="modal-overlay" id="delivery-modal">
-    <div class="modal">
+    <div class="modal" style="max-width:520px;">
       <div class="modal-header">
         <div class="modal-title" id="delivery-modal-title">Registrar entrega</div>
         <button class="btn btn-secondary" onclick="closeDeliveryModal()">Fechar</button>
@@ -879,9 +952,9 @@
     </div>
   </div>
 
-  <!-- MODAL REPOSITÓRIO -->
+  <!-- REPOSITÓRIO -->
   <div class="modal-overlay" id="repo-modal">
-    <div class="modal">
+    <div class="modal" style="max-width:520px;">
       <div class="modal-header">
         <div class="modal-title" id="repo-modal-title">Novo item</div>
         <button class="btn btn-secondary" onclick="closeRepoModal()">Fechar</button>
@@ -935,16 +1008,42 @@
       return `${d}/${m}/${y}`;
     }
 
-    function todayISO() {
-      const now = new Date();
-      const d = String(now.getDate()).padStart(2,'0');
-      const m = String(now.getMonth()+1).padStart(2,'0');
-      const y = now.getFullYear();
-      return `${y}-${m}-${d}`;
+    // ---------- SEMANAS ----------
+    function parseISO(iso) {
+      if (!iso) return null;
+      const [y,m,d] = iso.split('-').map(n=>parseInt(n,10));
+      if (!y || !m || !d) return null;
+      return new Date(y, m-1, d);
+    }
+
+    function formatDateBRFromDate(d) {
+      if (!d) return '';
+      const dia = String(d.getDate()).padStart(2,'0');
+      const mes = String(d.getMonth()+1).padStart(2,'0');
+      const ano = d.getFullYear();
+      return `${dia}/${mes}/${ano}`;
+    }
+
+    function getWeekRange(date) {
+      const d = new Date(date);
+      d.setHours(0,0,0,0);
+      const day = d.getDay(); // 0 dom, 6 sab
+      const sunday = new Date(d);
+      sunday.setDate(d.getDate() - day);
+      sunday.setHours(0,0,0,0);
+      const saturday = new Date(sunday);
+      saturday.setDate(sunday.getDate() + 6);
+      saturday.setHours(23,59,59,999);
+      return { start: sunday, end: saturday };
+    }
+
+    function weekKeyFromDate(date) {
+      const range = getWeekRange(date);
+      return range.start.toISOString().slice(0,10);
     }
 
     // --------- STATE & LOCALSTORAGE ----------
-    const STORAGE_KEY = 'murders-dashboard-v2';
+    const STORAGE_KEY = 'murders-dashboard-v3';
     let state = {
       clan: 1,
       webhookUrl: '',
@@ -994,9 +1093,15 @@
         members: 'Membros',
         events: 'Presença em eventos',
         deliveries: 'Entregas',
-        repo: 'Repositório do clã'
+        repo: 'Repositório',
+        reports: 'Relatórios semanais'
       };
       document.getElementById('currentTabTitle').textContent = titles[tab] || '';
+      if (tab === 'reports') {
+        buildWeekSelectors();
+        renderWeeklyPresenceReport();
+        renderWeeklyDeliveriesReport();
+      }
     }
 
     function updateDate() {
@@ -1022,22 +1127,10 @@
         return;
       }
       const msg = `Painel Murders – ${tipo} • Clã ${state.clan} • ${todayBR()}`;
-      // Para enviar de verdade, descomente:
-      /*
-      fetch(webhookUrl, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ content: msg })
-      }).then(() => {
-        alert('Enviado para o Discord!');
-      }).catch(() => {
-        alert('Falha ao enviar para o Discord. Confira a URL do webhook.');
-      });
-      */
       alert('Simulação de envio para o Discord:\n\n' + msg + '\n\nWebhook: ' + webhookUrl);
     }
 
-    // --------- TEMA CLARO/ESCURO ----------
+    // --------- TEMA ----------
     const THEME_KEY = 'murders-theme';
 
     function applyTheme(theme) {
@@ -1073,12 +1166,8 @@
     }
 
     // --------- MODAL HELPERS ----------
-    function openModal(id) {
-      document.getElementById(id).style.display = 'flex';
-    }
-    function closeModal(id) {
-      document.getElementById(id).style.display = 'none';
-    }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     // --------- MEMBROS ----------
     function openMemberModal(index = null) {
@@ -1102,9 +1191,7 @@
       openModal('member-modal');
     }
 
-    function closeMemberModal() {
-      closeModal('member-modal');
-    }
+    function closeMemberModal() { closeModal('member-modal'); }
 
     function saveMember() {
       const idxStr = document.getElementById('member-index').value;
@@ -1113,16 +1200,12 @@
       const power = document.getElementById('member-power').value.trim();
       const classe = document.getElementById('member-class').value;
       const dataBR = document.getElementById('member-date').value.trim() || todayBR();
-      if (!nick) {
-        alert('Nick é obrigatório.');
-        return;
-      }
+      if (!nick) { alert('Nick é obrigatório.'); return; }
       const dataISO = toISOFromBR(dataBR);
       const record = { nick, level, power, classe, data: dataISO };
       const list = state.members[state.clan];
-
       if (idxStr !== '') {
-        const idx = parseInt(idxStr, 10);
+        const idx = parseInt(idxStr,10);
         if (!Number.isNaN(idx) && list[idx]) list[idx] = record;
       } else {
         list.push(record);
@@ -1134,7 +1217,7 @@
 
     function deleteMember(index) {
       if (!confirm('Excluir este membro?')) return;
-      state.members[state.clan].splice(index, 1);
+      state.members[state.clan].splice(index,1);
       saveState();
       renderMembers();
     }
@@ -1145,13 +1228,10 @@
       const search = document.getElementById('searchMembers').value.toLowerCase();
       const filterClass = document.getElementById('filterClass').value;
       let list = [...state.members[state.clan]];
-
       if (search) list = list.filter(m => m.nick.toLowerCase().includes(search));
       if (filterClass) list = list.filter(m => m.classe === filterClass);
-
-      list.sort((a, b) => a.nick.localeCompare(b.nick, 'pt-BR'));
-
-      list.forEach((m, idx) => {
+      list.sort((a,b)=>a.nick.localeCompare(b.nick,'pt-BR'));
+      list.forEach((m,idx)=>{
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${m.nick}</td>
@@ -1164,8 +1244,7 @@
               <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="openMemberModal(${idx})">Editar</button>
               <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="deleteMember(${idx})">Excluir</button>
             </div>
-          </td>
-        `;
+          </td>`;
         body.appendChild(tr);
       });
     }
@@ -1192,9 +1271,7 @@
       openModal('event-modal');
     }
 
-    function closeEventModal() {
-      closeModal('event-modal');
-    }
+    function closeEventModal() { closeModal('event-modal'); }
 
     function saveEvent() {
       const idxStr = document.getElementById('event-index').value;
@@ -1203,16 +1280,12 @@
       const nick = document.getElementById('event-nick').value.trim();
       const status = document.getElementById('event-status').value;
       const justificativa = document.getElementById('event-just').value.trim();
-      if (!nick) {
-        alert('Nick é obrigatório.');
-        return;
-      }
+      if (!nick) { alert('Nick é obrigatório.'); return; }
       const dataISO = toISOFromBR(dataBR);
       const record = { data: dataISO, evento, nick, status, justificativa };
       const list = state.events[state.clan];
-
       if (idxStr !== '') {
-        const idx = parseInt(idxStr, 10);
+        const idx = parseInt(idxStr,10);
         if (!Number.isNaN(idx) && list[idx]) list[idx] = record;
       } else {
         list.push(record);
@@ -1224,66 +1297,47 @@
 
     function deleteEvent(index) {
       if (!confirm('Excluir este registro de presença?')) return;
-      state.events[state.clan].splice(index, 1);
+      state.events[state.clan].splice(index,1);
       saveState();
       renderEvents();
+      buildWeekSelectors();
     }
 
-    // resumo por nick + data
     function renderEvents() {
       const body = document.getElementById('events-body');
       body.innerHTML = '';
-
       const filterEvent = document.getElementById('filterEvent').value;
       const filterStatus = document.getElementById('filterStatus').value;
-
       let list = [...state.events[state.clan]];
-
-      if (filterEvent) {
-        list = list.filter(e => e.evento === filterEvent);
-      }
-      if (filterStatus) {
-        list = list.filter(e => e.status === filterStatus);
-      }
+      if (filterEvent) list = list.filter(e=>e.evento===filterEvent);
+      if (filterStatus) list = list.filter(e=>e.status===filterStatus);
 
       const grouped = {};
-      list.forEach(e => {
+      list.forEach(e=>{
         const key = `${e.nick}|||${e.data}`;
         if (!grouped[key]) {
-          grouped[key] = {
-            nick: e.nick,
-            data: e.data,
-            presentes: [],
-            faltas: [],
-            justificadas: []
-          };
+          grouped[key] = { nick:e.nick, data:e.data, presentes:[], faltas:[], justificadas:[] };
         }
-        if (e.status === 'Presente') {
-          grouped[key].presentes.push(e.evento);
-        } else if (e.status === 'Faltou') {
-          grouped[key].faltas.push(e.evento);
-        } else if (e.status === 'Justificou') {
-          grouped[key].justificadas.push(e.evento);
-        }
+        if (e.status==='Presente') grouped[key].presentes.push(e.evento);
+        else if (e.status==='Faltou') grouped[key].faltas.push(e.evento);
+        else if (e.status==='Justificou') grouped[key].justificadas.push(e.evento);
       });
 
       let rows = Object.values(grouped);
-      rows.sort((a, b) => {
-        const n = a.nick.localeCompare(b.nick, 'pt-BR');
-        if (n !== 0) return n;
-        return (a.data || '').localeCompare(b.data || '');
+      rows.sort((a,b)=>{
+        const n = a.nick.localeCompare(b.nick,'pt-BR');
+        if (n!==0) return n;
+        return (a.data||'').localeCompare(b.data||'');
       });
 
-      rows.forEach(group => {
+      rows.forEach(group=>{
         const presentesStr = group.presentes.join(', ');
         const faltasStr = group.faltas.join(', ');
         const justStr = group.justificadas.join(', ');
-
         let resumo = '';
         if (presentesStr) resumo += `Foi aos eventos: ${presentesStr}. `;
         if (faltasStr) resumo += `Faltou em: ${faltasStr}. `;
         if (justStr) resumo += `Justificou em: ${justStr}.`;
-
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${toBRFromISO(group.data)}</td>
@@ -1292,29 +1346,26 @@
           <td>
             <div class="table-actions">
               <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;"
-                onclick="editEventsByGroup('${group.nick.replace(/'/g, "\\'")}', '${group.data}')">
+                onclick="editEventsByGroup('${group.nick.replace(/'/g,"\\'")}', '${group.data}')">
                 Ver / editar
               </button>
             </div>
-          </td>
-        `;
+          </td>`;
         body.appendChild(tr);
       });
 
-      if (rows.length === 0) {
+      if (rows.length===0) {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td colspan="4">Nenhuma presença registrada com esses filtros.</td>`;
         body.appendChild(tr);
       }
+      buildWeekSelectors();
     }
 
     function editEventsByGroup(nick, isoDate) {
       const list = state.events[state.clan];
-      const idx = list.findIndex(e => e.nick === nick && e.data === isoDate);
-      if (idx === -1) {
-        alert('Não foi possível localizar o registro para edição.');
-        return;
-      }
+      const idx = list.findIndex(e=>e.nick===nick && e.data===isoDate);
+      if (idx===-1) { alert('Não foi possível localizar o registro para edição.'); return; }
       openEventModal(idx);
     }
 
@@ -1338,9 +1389,7 @@
       openModal('delivery-modal');
     }
 
-    function closeDeliveryModal() {
-      closeModal('delivery-modal');
-    }
+    function closeDeliveryModal() { closeModal('delivery-modal'); }
 
     function saveDelivery() {
       const idxStr = document.getElementById('delivery-index').value;
@@ -1348,17 +1397,13 @@
       const nick = document.getElementById('delivery-nick').value.trim();
       const classe = document.getElementById('delivery-class').value;
       const descricao = document.getElementById('delivery-desc').value.trim();
-      if (!nick) {
-        alert('Nick é obrigatório.');
-        return;
-      }
+      if (!nick) { alert('Nick é obrigatório.'); return; }
       const dataISO = toISOFromBR(dataBR);
       const record = { data: dataISO, nick, classe, descricao };
       const list = state.deliveries[state.clan];
-
-      if (idxStr !== '') {
-        const idx = parseInt(idxStr, 10);
-        if (!Number.isNaN(idx) && list[idx]) list[idx] = record;
+      if (idxStr!=='') {
+        const idx = parseInt(idxStr,10);
+        if (!Number.isNaN(idx) && list[idx]) list[idx]=record;
       } else {
         list.push(record);
       }
@@ -1369,9 +1414,10 @@
 
     function deleteDelivery(index) {
       if (!confirm('Excluir esta entrega?')) return;
-      state.deliveries[state.clan].splice(index, 1);
+      state.deliveries[state.clan].splice(index,1);
       saveState();
       renderDeliveries();
+      buildWeekSelectors();
     }
 
     function renderDeliveries() {
@@ -1380,13 +1426,10 @@
       const searchNick = document.getElementById('searchDeliveriesNick').value.toLowerCase();
       const filterClass = document.getElementById('filterDeliveriesClass').value;
       let list = [...state.deliveries[state.clan]];
-
-      if (searchNick) list = list.filter(d => d.nick.toLowerCase().includes(searchNick));
-      if (filterClass) list = list.filter(d => d.classe === filterClass);
-
-      list.sort((a, b) => a.nick.localeCompare(b.nick, 'pt-BR'));
-
-      list.forEach((d, idx) => {
+      if (searchNick) list = list.filter(d=>d.nick.toLowerCase().includes(searchNick));
+      if (filterClass) list = list.filter(d=>d.classe===filterClass);
+      list.sort((a,b)=>a.nick.localeCompare(b.nick,'pt-BR'));
+      list.forEach((d,idx)=>{
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${toBRFromISO(d.data)}</td>
@@ -1398,47 +1441,43 @@
               <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="openDeliveryModal(${idx})">Editar</button>
               <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="deleteDelivery(${idx})">Excluir</button>
             </div>
-          </td>
-        `;
+          </td>`;
         body.appendChild(tr);
       });
+      buildWeekSelectors();
     }
 
     function showMonthlyReport() {
-      document.getElementById('monthly-report-card').style.display = 'block';
+      document.getElementById('monthly-report-card').style.display='block';
       if (!document.getElementById('reportMonth').value) {
-        const now = new Date();
-        const ym = now.toISOString().slice(0, 7);
-        document.getElementById('reportMonth').value = ym;
+        const now=new Date();
+        const ym=now.toISOString().slice(0,7);
+        document.getElementById('reportMonth').value=ym;
       }
       renderMonthlyReport();
     }
 
     function renderMonthlyReport() {
-      const monthInput = document.getElementById('reportMonth').value;
-      const body = document.getElementById('monthly-report-body');
-      body.innerHTML = '';
+      const monthInput=document.getElementById('reportMonth').value;
+      const body=document.getElementById('monthly-report-body');
+      body.innerHTML='';
       if (!monthInput) return;
-
-      const [year, month] = monthInput.split('-');
-      const list = state.deliveries[state.clan].filter(d => d.data && d.data.startsWith(year + '-' + month));
-
-      const byNick = {};
-      list.forEach(d => {
-        if (!byNick[d.nick]) byNick[d.nick] = [];
-        byNick[d.nick].push(d.descricao || '(sem descrição)');
+      const [year,month]=monthInput.split('-');
+      const list=state.deliveries[state.clan].filter(d=>d.data && d.data.startsWith(year+'-'+month));
+      const byNick={};
+      list.forEach(d=>{
+        if(!byNick[d.nick]) byNick[d.nick]=[];
+        byNick[d.nick].push(d.descricao||'(sem descrição)');
       });
-
-      const nicks = Object.keys(byNick).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-      nicks.forEach(nick => {
-        const tr = document.createElement('tr');
-        const resumo = byNick[nick].join(' • ');
-        tr.innerHTML = `<td>${nick}</td><td>${resumo}</td>`;
+      const nicks=Object.keys(byNick).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+      nicks.forEach(nick=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${nick}</td><td>${byNick[nick].join(' • ')}</td>`;
         body.appendChild(tr);
       });
     }
 
-    // --------- REPOSITÓRIO ----------
+    // --------- REPOSITÓRIO (copiando ideia do index-2: estoque) ----------
     function openRepoModal(index = null) {
       document.getElementById('repo-index').value = index !== null ? index : '';
       document.getElementById('repo-modal-title').textContent = index !== null ? 'Editar item' : 'Novo item';
@@ -1458,29 +1497,23 @@
       openModal('repo-modal');
     }
 
-    function closeRepoModal() {
-      closeModal('repo-modal');
-    }
+    function closeRepoModal() { closeModal('repo-modal'); }
 
     function saveRepo() {
-      const idxStr = document.getElementById('repo-index').value;
-      const titulo = document.getElementById('repo-title').value.trim();
-      const qtdStr = document.getElementById('repo-qty').value.trim();
-      const dataBR = document.getElementById('repo-date').value.trim() || todayBR();
-      const conteudo = document.getElementById('repo-content').value.trim();
-      if (!titulo) {
-        alert('Item é obrigatório.');
-        return;
-      }
-      const quantidade = qtdStr === '' ? '' : Number(qtdStr);
-      const dataISO = toISOFromBR(dataBR);
-      const record = { titulo, quantidade, data: dataISO, conteudo };
-      const list = state.repo[state.clan];
-
-      if (idxStr !== '') {
-        const idx = parseInt(idxStr, 10);
-        if (!Number.isNaN(idx) && list[idx]) list[idx] = record;
-      } else {
+      const idxStr=document.getElementById('repo-index').value;
+      const titulo=document.getElementById('repo-title').value.trim();
+      const qtdStr=document.getElementById('repo-qty').value.trim();
+      const dataBR=document.getElementById('repo-date').value.trim()||todayBR();
+      const conteudo=document.getElementById('repo-content').value.trim();
+      if(!titulo){alert('Item é obrigatório.');return;}
+      const quantidade=qtdStr===''?'':Number(qtdStr);
+      const dataISO=toISOFromBR(dataBR);
+      const record={titulo,quantidade,data:dataISO,conteudo};
+      const list=state.repo[state.clan];
+      if(idxStr!==''){
+        const idx=parseInt(idxStr,10);
+        if(!Number.isNaN(idx)&&list[idx]) list[idx]=record;
+      }else{
         list.push(record);
       }
       saveState();
@@ -1488,47 +1521,40 @@
       renderRepo();
     }
 
-    function editRepo(index) {
-      openRepoModal(index);
-    }
+    function editRepo(index){openRepoModal(index);}
 
-    function deleteRepo(index) {
-      if (!confirm('Excluir esta entrada do repositório?')) return;
-      state.repo[state.clan].splice(index, 1);
+    function deleteRepo(index){
+      if(!confirm('Excluir esta entrada do repositório?'))return;
+      state.repo[state.clan].splice(index,1);
       saveState();
       renderRepo();
     }
 
-    function copyRepo() {
-      const all = state.repo[state.clan]
+    function copyRepo(){
+      const all=state.repo[state.clan]
         .slice()
-        .sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'))
-        .map(r => `• ${r.quantidade != null && r.quantidade !== '' ? r.quantidade : '-'} - ${r.titulo} (${toBRFromISO(r.data)}) - ${r.conteudo}`)
+        .sort((a,b)=>a.titulo.localeCompare(b.titulo,'pt-BR'))
+        .map(r=>`• ${r.quantidade != null && r.quantidade !== '' ? r.quantidade : '-'} - ${r.titulo} (${toBRFromISO(r.data)}) - ${r.conteudo}`)
         .join('\n');
-      state.clipboardRepo = all;
+      state.clipboardRepo=all;
       saveState();
-      navigator.clipboard.writeText(all).catch(() => {});
+      navigator.clipboard.writeText(all).catch(()=>{});
       alert('Repositório copiado para a área de transferência (quando permitido).');
     }
 
-    function pasteRepo() {
-      if (!state.clipboardRepo) {
-        alert('Nada copiado internamente ainda.');
-        return;
-      }
-      alert('Conteúdo copiado internamente:\n\n' + state.clipboardRepo);
+    function pasteRepo(){
+      if(!state.clipboardRepo){alert('Nada copiado internamente ainda.');return;}
+      alert('Conteúdo copiado internamente:\n\n'+state.clipboardRepo);
     }
 
-    function renderRepo() {
-      const body = document.getElementById('repo-body');
-      body.innerHTML = '';
-
-      let list = [...state.repo[state.clan]];
-      list.sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'));
-
-      list.forEach((r, idx) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
+    function renderRepo(){
+      const body=document.getElementById('repo-body');
+      body.innerHTML='';
+      let list=[...state.repo[state.clan]];
+      list.sort((a,b)=>a.titulo.localeCompare(b.titulo,'pt-BR'));
+      list.forEach((r,idx)=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
           <td>${r.quantidade != null && r.quantidade !== '' ? r.quantidade : '-'}</td>
           <td>${r.titulo}</td>
           <td>${toBRFromISO(r.data)}</td>
@@ -1538,62 +1564,288 @@
               <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="editRepo(${idx})">Editar</button>
               <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="deleteRepo(${idx})">Excluir</button>
             </div>
-          </td>
-        `;
+          </td>`;
         body.appendChild(tr);
       });
-
-      if (list.length === 0) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="5">Nenhuma entrada no repositório.</td>`;
+      if(list.length===0){
+        const tr=document.createElement('tr');
+        tr.innerHTML='<td colspan="5">Nenhuma entrada no repositório.</td>';
         body.appendChild(tr);
       }
     }
 
-    // --------- PDF ----------
-    function exportTableToPDF(tableId, nomeArquivoBase) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const table = document.getElementById(tableId);
-      if (!table) return;
-      doc.text(nomeArquivoBase.toUpperCase(), 14, 12);
-      doc.autoTable({ html: '#' + tableId, startY: 16 });
-      doc.save(nomeArquivoBase + '.pdf');
+    // --------- RELATÓRIOS SEMANAIS (inspirado no index-2) ----------
+    function buildWeekSelectors(){
+      const presenceSelect=document.getElementById('weekPresenceSelect');
+      const deliveriesSelect=document.getElementById('weekDeliveriesSelect');
+      if(!presenceSelect||!deliveriesSelect)return;
+
+      // PRESENÇA
+      const events=state.events[state.clan];
+      const presMap={};
+      events.forEach(e=>{
+        const d=parseISO(e.data);
+        if(!d)return;
+        const key=weekKeyFromDate(d);
+        if(!presMap[key]){
+          const range=getWeekRange(d);
+          presMap[key]={start:range.start,end:range.end};
+        }
+      });
+      const presWeeks=Object.keys(presMap)
+        .map(k=>({key:k,start:presMap[k].start,end:presMap[k].end}))
+        .sort((a,b)=>a.start-b.start);
+      presenceSelect.innerHTML='';
+      presWeeks.forEach(w=>{
+        const opt=document.createElement('option');
+        opt.value=w.key;
+        opt.textContent=`${w.key} (${formatDateBRFromDate(w.start)} - ${formatDateBRFromDate(w.end)})`;
+        presenceSelect.appendChild(opt);
+      });
+
+      // ENTREGAS
+      const delivs=state.deliveries[state.clan];
+      const delMap={};
+      delivs.forEach(d=>{
+        const dt=parseISO(d.data);
+        if(!dt)return;
+        const key=weekKeyFromDate(dt);
+        if(!delMap[key]){
+          const range=getWeekRange(dt);
+          delMap[key]={start:range.start,end:range.end};
+        }
+      });
+      const delWeeks=Object.keys(delMap)
+        .map(k=>({key:k,start:delMap[k].start,end:delMap[k].end}))
+        .sort((a,b)=>a.start-b.start);
+      deliveriesSelect.innerHTML='';
+      delWeeks.forEach(w=>{
+        const opt=document.createElement('option');
+        opt.value=w.key;
+        opt.textContent=`${w.key} (${formatDateBRFromDate(w.start)} - ${formatDateBRFromDate(w.end)})`;
+        deliveriesSelect.appendChild(opt);
+      });
+
+      if(presWeeks.length && !presenceSelect.value) presenceSelect.value=presWeeks[presWeeks.length-1].key;
+      if(delWeeks.length && !deliveriesSelect.value) deliveriesSelect.value=delWeeks[delWeeks.length-1].key;
     }
 
-    function exportRepoToPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const tableId = 'repo-table';
-      doc.text('REPOSITÓRIO DO CLÃ', 14, 12);
-      doc.autoTable({ html: '#' + tableId, startY: 16 });
+    function aggregateWeeklyPresence(weekKey){
+      const events=state.events[state.clan];
+      const refDate=parseISO(weekKey);
+      if(!refDate)return {range:null, entries:[], text:''};
+      const range=getWeekRange(refDate);
+      const filtered=events.filter(e=>{
+        const d=parseISO(e.data);
+        if(!d)return false;
+        return d>=range.start && d<=range.end;
+      });
+      const members={};
+      filtered.forEach(e=>{
+        const nick=e.nick;
+        const d=parseISO(e.data);
+        if(!members[nick]) members[nick]={dates:{}};
+        const dKey=formatDateBRFromDate(d);
+        if(!members[nick].dates[dKey]) members[nick].dates[dKey]={presentes:[],faltas:[],justificadas:[]};
+        const bucket=members[nick].dates[dKey];
+        if(e.status==='Presente') bucket.presentes.push(e.evento);
+        else if(e.status==='Faltou') bucket.faltas.push(e.evento);
+        else if(e.status==='Justificou') bucket.justificadas.push(e.evento);
+      });
+      const entries=Object.keys(members).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(name=>{
+        const dates=Object.keys(members[name].dates).sort((a,b)=>{
+          const pa=a.split('/').reverse().join('-');
+          const pb=b.split('/').reverse().join('-');
+          return pa.localeCompare(pb);
+        }).map(ds=>{
+          const info=members[name].dates[ds];
+          return {dateStr:ds, presentes:info.presentes, faltas:info.faltas, justificadas:info.justificadas};
+        });
+        return {name,dates};
+      });
+      let text=`PRESENÇA DA SEMANA (${formatDateBRFromDate(range.start)} - ${formatDateBRFromDate(range.end)})\n\n`;
+      entries.forEach(m=>{
+        text+=`${m.name}\n`;
+        m.dates.forEach(d=>{
+          const pres=d.presentes.length?`Foi em: ${d.presentes.join(', ')}`:'';
+          const falt=d.faltas.length?`Faltou em: ${d.faltas.join(', ')}`:'';
+          const jus=d.justificadas.length?`Justificou: ${d.justificadas.join(', ')}`:'';
+          const parts=[pres,falt,jus].filter(Boolean).join(' | ');
+          text+=` - ${d.dateStr}: ${parts}\n`;
+        });
+        text+='\n';
+      });
+      if(!filtered.length) text+='Sem registros de presença nessa semana.\n';
+      return {range,entries,text};
+    }
+
+    function renderWeeklyPresenceReport(){
+      const sel=document.getElementById('weekPresenceSelect');
+      const container=document.getElementById('weekly-presence-content');
+      container.innerHTML='';
+      if(!sel || !sel.value){
+        container.innerHTML='<div class="empty">Nenhuma semana disponível.</div>';
+        return;
+      }
+      const agg=aggregateWeeklyPresence(sel.value);
+      if(!agg.entries.length){
+        container.innerHTML='<div class="empty">Sem registros de presença nessa semana.</div>';
+        return;
+      }
+      agg.entries.forEach(m=>{
+        const div=document.createElement('div');
+        div.className='history-member';
+        const h=document.createElement('h4');
+        h.textContent=m.name;
+        div.appendChild(h);
+        const dates=document.createElement('div');
+        dates.className='history-dates';
+        m.dates.forEach(d=>{
+          const pres=d.presentes.length?`Foi em: ${d.presentes.join(', ')}`:'';
+          const falt=d.faltas.length?`Faltou em: ${d.faltas.join(', ')}`:'';
+          const jus=d.justificadas.length?`Justificou: ${d.justificadas.join(', ')}`:'';
+          const parts=[pres,falt,jus].filter(Boolean).join(' | ');
+          const p=document.createElement('div');
+          p.textContent=`${d.dateStr}: ${parts}`;
+          dates.appendChild(p);
+        });
+        div.appendChild(dates);
+        container.appendChild(div);
+      });
+    }
+
+    function copyWeeklyPresenceText(){
+      const sel=document.getElementById('weekPresenceSelect');
+      if(!sel || !sel.value){alert('Selecione uma semana primeiro.');return;}
+      const agg=aggregateWeeklyPresence(sel.value);
+      navigator.clipboard.writeText(agg.text).then(()=>{
+        alert('Relatório de presença copiado para a área de transferência.');
+      }).catch(()=>{
+        alert('Não foi possível copiar automaticamente. Você pode selecionar o texto manualmente na tela.');
+      });
+    }
+
+    function aggregateWeeklyDeliveries(weekKey){
+      const delivs=state.deliveries[state.clan];
+      const refDate=parseISO(weekKey);
+      if(!refDate)return {range:null,entries:[],text:''};
+      const range=getWeekRange(refDate);
+      const filtered=delivs.filter(d=>{
+        const dt=parseISO(d.data);
+        if(!dt) return false;
+        return dt>=range.start && dt<=range.end;
+      });
+      const members={};
+      filtered.forEach(d=>{
+        const nick=d.nick;
+        const dt=parseISO(d.data);
+        if(!members[nick]) members[nick]={dates:{}};
+        const dKey=formatDateBRFromDate(dt);
+        if(!members[nick].dates[dKey]) members[nick].dates[dKey]=[];
+        members[nick].dates[dKey].push(d.descricao || '(sem descrição)');
+      });
+      const entries=Object.keys(members).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(name=>{
+        const dates=Object.keys(members[name].dates).sort((a,b)=>{
+          const pa=a.split('/').reverse().join('-');
+          const pb=b.split('/').reverse().join('-');
+          return pa.localeCompare(pb);
+        }).map(ds=>({dateStr:ds,entregas:members[name].dates[ds]}));
+        return {name,dates};
+      });
+      let text=`ENTREGAS DA SEMANA (${formatDateBRFromDate(range.start)} - ${formatDateBRFromDate(range.end)})\n\n`;
+      entries.forEach(m=>{
+        text+=`${m.name}\n`;
+        m.dates.forEach(d=>{
+          text+=` - ${d.dateStr}: ${d.entregas.join(' • ')}\n`;
+        });
+        text+='\n';
+      });
+      if(!filtered.length) text+='Sem entregas registradas nessa semana.\n';
+      return {range,entries,text};
+    }
+
+    function renderWeeklyDeliveriesReport(){
+      const sel=document.getElementById('weekDeliveriesSelect');
+      const container=document.getElementById('weekly-deliveries-content');
+      container.innerHTML='';
+      if(!sel || !sel.value){
+        container.innerHTML='<div class="empty">Nenhuma semana disponível.</div>';
+        return;
+      }
+      const agg=aggregateWeeklyDeliveries(sel.value);
+      if(!agg.entries.length){
+        container.innerHTML='<div class="empty">Sem entregas nessa semana.</div>';
+        return;
+      }
+      agg.entries.forEach(m=>{
+        const div=document.createElement('div');
+        div.className='history-member';
+        const h=document.createElement('h4');
+        h.textContent=m.name;
+        div.appendChild(h);
+        const dates=document.createElement('div');
+        dates.className='history-dates';
+        m.dates.forEach(d=>{
+          const p=document.createElement('div');
+          p.textContent=`${d.dateStr}: ${d.entregas.join(' • ')}`;
+          dates.appendChild(p);
+        });
+        div.appendChild(dates);
+        container.appendChild(div);
+      });
+    }
+
+    function copyWeeklyDeliveriesText(){
+      const sel=document.getElementById('weekDeliveriesSelect');
+      if(!sel || !sel.value){alert('Selecione uma semana primeiro.');return;}
+      const agg=aggregateWeeklyDeliveries(sel.value);
+      navigator.clipboard.writeText(agg.text).then(()=>{
+        alert('Relatório de entregas copiado para a área de transferência.');
+      }).catch(()=>{
+        alert('Não foi possível copiar automaticamente. Você pode selecionar o texto manualmente na tela.');
+      });
+    }
+
+    // --------- PDF ----------
+    function exportTableToPDF(tableId,nomeArquivoBase){
+      const {jsPDF}=window.jspdf;
+      const doc=new jsPDF();
+      const table=document.getElementById(tableId);
+      if(!table)return;
+      doc.text(nomeArquivoBase.toUpperCase(),14,12);
+      doc.autoTable({html:'#'+tableId,startY:16});
+      doc.save(nomeArquivoBase+'.pdf');
+    }
+
+    function exportRepoToPDF(){
+      const {jsPDF}=window.jspdf;
+      const doc=new jsPDF();
+      const tableId='repo-table';
+      doc.text('REPOSITÓRIO DO CLÃ',14,12);
+      doc.autoTable({html:'#'+tableId,startY:16});
       doc.save('repositorio.pdf');
     }
 
-    function importPdfPlaceholder(event) {
-      if (event.target.files && event.target.files[0]) {
+    function importPdfPlaceholder(event){
+      if(event.target.files && event.target.files[0]){
         alert('Importar PDF aqui é só visual; importação real exigiria backend/leitura de PDF.');
       }
     }
 
     // --------- RENDER GERAL ----------
-    function renderAll() {
+    function renderAll(){
       renderMembers();
       renderEvents();
       renderDeliveries();
       renderRepo();
       loadWebhookToInput();
-      if (document.getElementById('monthly-report-card').style.display !== 'none') {
-        renderMonthlyReport();
-      }
+      buildWeekSelectors();
     }
 
     // Fechar modais clicando fora
-    ['member-modal','event-modal','delivery-modal','repo-modal'].forEach(id => {
-      const el = document.getElementById(id);
-      el.addEventListener('click', (e) => {
-        if (e.target === el) el.style.display = 'none';
-      });
+    ['member-modal','event-modal','delivery-modal','repo-modal'].forEach(id=>{
+      const el=document.getElementById(id);
+      el.addEventListener('click',e=>{ if(e.target===el) el.style.display='none'; });
     });
 
     // Init
