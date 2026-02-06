@@ -620,8 +620,6 @@
 
       <div class="actions-row">
         <button class="btn btn-primary" onclick="openEventModal()">+ Registrar presença</button>
-        <button class="btn btn-danger" onclick="clearEventsForSelectedDay()">Apagar</button>
-        <button class="btn btn-danger" onclick="clearAllEvents()">Apagar tudo</button>
         <button class="btn btn-secondary" onclick="sendToDiscord('presencas')">Enviar para o Discord</button>
       </div>
 
@@ -765,7 +763,9 @@
           </div>
           <div class="actions-row" style="margin-top:8px;">
             <button class="btn btn-primary" onclick="addRepoItem()">Salvar item</button>
-            <button class="btn btn-danger" onclick="clearRepo()">Limpar repositório</button>
+            <button class="btn btn-danger" onclick="clearRepo()">
+              Limpar repositório
+            </button>
             <label class="btn btn-secondary">
               Importar PDF
               <input type="file" accept="application/pdf" style="display:none"
@@ -792,7 +792,9 @@
               placeholder="Cole aqui o texto igual vem do jogo.&#10;Ex:&#10;Baú de Esboço da Batalha de Servidores    5    Batalha de Servidores    2026.02.03 20:18:27 UTC-3"></textarea>
           </div>
           <div class="actions-row" style="margin-top:8px;">
-            <button class="btn btn-primary" onclick="importRepoFromText()">Importar itens (texto)</button>
+            <button class="btn btn-primary" onclick="importRepoFromText()">
+              Importar itens (texto)
+            </button>
           </div>
         </div>
       </div>
@@ -923,19 +925,8 @@
           </select>
         </div>
         <div class="form-group">
-          <label for="event-name-2">Outro evento (mesmo dia, opcional)</label>
-          <select id="event-name-2" class="select">
-            <option value="">Nenhum</option>
-            <option>Boss do clã</option>
-            <option>Copa Ymir</option>
-            <option>Guerra da coroa</option>
-            <option>Ilha de Sindri</option>
-            <option>Interserver</option>
-          </select>
-        </div>
-        <div class="form-group">
           <label for="event-nick">Nick</label>
-          <input id="event-nick" class="input" placeholder="Nick do membro" />
+          <span id="event-nick" class="input" style="display:inline-block; border:none; padding-left:0;"></span>
         </div>
         <div class="form-group">
           <label for="event-status">Status</label>
@@ -1231,7 +1222,12 @@
       list.forEach((m,idx)=>{
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${m.nick}</td>
+          <td>
+            <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;"
+              onclick="openEventModal(null, '${m.nick}')">
+              ${m.nick}
+            </button>
+          </td>
           <td>${m.level || ''}</td>
           <td>${m.power || ''}</td>
           <td>${m.classe || ''}</td>
@@ -1323,87 +1319,57 @@
     }
 
     // ---- PRESENÇA ----
-    function openEventModal(index = null) {
+    function openEventModal(index = null, nickFromClick = null) {
       document.getElementById('event-index').value = index !== null ? index : '';
       document.getElementById('event-modal-title').textContent = index !== null ? 'Editar presença' : 'Registrar presença';
-      const secondSelect = document.getElementById('event-name-2');
+
+      const nickSpan = document.getElementById('event-nick');
+
       if (index !== null) {
         const e = state.events[state.clan][index];
         if (!e) return;
         document.getElementById('event-date').value = toBRFromISO(e.data) || todayBR();
         document.getElementById('event-name').value = e.evento;
-        document.getElementById('event-nick').value = e.nick;
+        nickSpan.textContent = e.nick;
         document.getElementById('event-status').value = e.status;
         document.getElementById('event-just').value = e.justificativa || '';
-        if (secondSelect) secondSelect.value = '';
       } else {
         document.getElementById('event-date').value = todayBR();
         document.getElementById('event-name').value = 'Boss do clã';
-        document.getElementById('event-nick').value = '';
+        nickSpan.textContent = nickFromClick || '';
         document.getElementById('event-status').value = 'Presente';
         document.getElementById('event-just').value = '';
-        if (secondSelect) secondSelect.value = '';
       }
       openModal('event-modal');
     }
     function closeEventModal() { closeModal('event-modal'); }
+
     function saveEvent() {
       const idxStr = document.getElementById('event-index').value;
       const dataBR = document.getElementById('event-date').value.trim() || todayBR();
       const evento = document.getElementById('event-name').value;
-      const evento2 = document.getElementById('event-name-2') ? document.getElementById('event-name-2').value : '';
-      const nick = document.getElementById('event-nick').value.trim();
+      const nick = (document.getElementById('event-nick').textContent || '').trim();
       const status = document.getElementById('event-status').value;
       const justificativa = document.getElementById('event-just').value.trim();
-      if (!nick) { alert('Nick é obrigatório.'); return; }
+      if (!nick) { alert('Nick é obrigatório. Abra o registro clicando no membro.'); return; }
       const dataISO = toISOFromBR(dataBR);
+      const record = { data: dataISO, evento, nick, status, justificativa };
       const list = state.events[state.clan];
 
       if (idxStr !== '') {
         const idx = parseInt(idxStr,10);
-        const old = list[idx];
-        if (old) {
-          const dataAlvo = old.data;
-          const nickAlvo = old.nick;
-          state.events[state.clan] = list.filter(e => !(e.data === dataAlvo && e.nick === nickAlvo));
-        }
+        if (!Number.isNaN(idx) && list[idx]) list[idx] = record;
+      } else {
+        list.push(record);
       }
-
-      list.push({ data: dataISO, evento, nick, status, justificativa });
-      if (evento2) {
-        list.push({ data: dataISO, evento: evento2, nick, status, justificativa });
-      }
-
       saveState();
       closeEventModal();
       renderEvents();
     }
+
     function deleteEvent(index) {
       if (!confirm('Excluir este registro de presença?')) return;
       state.events[state.clan].splice(index,1);
-      saveState();
-      renderEvents();
-      buildWeekSelectors();
-    }
-
-    function clearEventsForSelectedDay() {
-      const dataBR = prompt('Informe a data para apagar as presenças (dd/mm/aaaa):');
-      if (!dataBR) return;
-      const dataISO = toISOFromBR(dataBR);
-      if (!dataISO) {
-        alert('Data inválida.');
-        return;
-      }
-      if (!confirm(`Apagar TODAS as presenças deste clã na data ${dataBR}?`)) return;
-      state.events[state.clan] = (state.events[state.clan] || []).filter(e => e.data !== dataISO);
-      saveState();
-      renderEvents();
-      buildWeekSelectors();
-    }
-
-    function clearAllEvents() {
-      if (!confirm('Tem certeza que quer apagar TODAS as presenças deste clã? Não dá para desfazer.')) return;
-      state.events[state.clan] = [];
       saveState();
       renderEvents();
       buildWeekSelectors();
@@ -1413,66 +1379,52 @@
       const body = document.getElementById('events-body');
       if (!body) return;
       body.innerHTML = '';
+
       const filterEvent = document.getElementById('filterEvent')?.value || '';
       const filterStatus = document.getElementById('filterStatus')?.value || '';
+
       let list = [...(state.events[state.clan] || [])];
-      if (filterEvent) list = list.filter(e=>e.evento===filterEvent);
-      if (filterStatus) list = list.filter(e=>e.status===filterStatus);
+      if (filterEvent) list = list.filter(e => e.evento === filterEvent);
+      if (filterStatus) list = list.filter(e => e.status === filterStatus);
 
-      const grouped = {};
-      list.forEach(e=>{
-        const key = `${e.nick}|||${e.data}`;
-        if (!grouped[key]) {
-          grouped[key] = { nick:e.nick, data:e.data, presentes:[], faltas:[], justificadas:[] };
-        }
-        if (e.status==='Presente') grouped[key].presentes.push(e.evento);
-        else if (e.status==='Faltou') grouped[key].faltas.push(e.evento);
-        else if (e.status==='Justificou') grouped[key].justificadas.push(e.evento);
+      list.sort((a, b) => {
+        const d = (a.data || '').localeCompare(b.data || '');
+        if (d !== 0) return d;
+        return a.nick.localeCompare(b.nick, 'pt-BR');
       });
 
-      let rows = Object.values(grouped);
-      rows.sort((a,b)=>{
-        const n = a.nick.localeCompare(b.nick,'pt-BR');
-        if (n!==0) return n;
-        return (a.data||'').localeCompare(b.data||'');
-      });
-
-      rows.forEach(group=>{
-        const presentesStr = group.presentes.join(', ');
-        const faltasStr = group.faltas.join(', ');
-        const justStr = group.justificadas.join(', ');
+      list.forEach((e, idx) => {
         let resumo = '';
-        if (presentesStr) resumo += `Foi aos eventos: ${presentesStr}. `;
-        if (faltasStr) resumo += `Faltou em: ${faltasStr}. `;
-        if (justStr) resumo += `Justificou em: ${justStr}.`;
+        if (e.status === 'Presente') resumo = `Presente no evento: ${e.evento}.`;
+        else if (e.status === 'Faltou') resumo = `Faltou no evento: ${e.evento}.`;
+        else if (e.status === 'Justificou') resumo = `Justificou no evento: ${e.evento}.`;
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${toBRFromISO(group.data)}</td>
+          <td>${toBRFromISO(e.data)}</td>
           <td>${resumo}</td>
-          <td>${group.nick}</td>
+          <td>${e.nick}</td>
           <td>
             <div class="table-actions">
               <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;"
-                onclick="editEventsByGroup('${group.nick.replace(/'/g,"\\'")}', '${group.data}')">
+                onclick="openEventModal(${idx})">
                 Ver / editar
+              </button>
+              <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;"
+                onclick="deleteEvent(${idx})">
+                Apagar
               </button>
             </div>
           </td>`;
         body.appendChild(tr);
       });
 
-      if (rows.length===0) {
+      if (!list.length) {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td colspan="4">Nenhuma presença registrada com esses filtros.</td>`;
         body.appendChild(tr);
       }
+
       buildWeekSelectors();
-    }
-    function editEventsByGroup(nick, isoDate) {
-      const list = state.events[state.clan];
-      const idx = list.findIndex(e=>e.nick===nick && e.data===isoDate);
-      if (idx===-1) { alert('Não foi possível localizar o registro para edição.'); return; }
-      openEventModal(idx);
     }
 
     // ---- ENTREGAS ----
@@ -2094,25 +2046,6 @@
       doc.save(`${titulo}-clan${state.clan}.pdf`);
     }
 
-    // ---- RESET SEMANAL DE PRESENÇA (DOMINGO 23h) ----
-    const WEEKLY_RESET_KEY = 'murders-weekly-reset-v1';
-    function maybeWeeklyReset() {
-      const now = new Date();
-      const lastResetStr = localStorage.getItem(WEEKLY_RESET_KEY);
-      const lastReset = lastResetStr ? new Date(lastResetStr) : null;
-
-      if (now.getDay() !== 0 || now.getHours() !== 23) return;
-
-      if (lastReset && now.toDateString() === lastReset.toDateString()) return;
-
-      state.events[state.clan] = [];
-      saveState();
-      buildWeekSelectors();
-      renderEvents();
-
-      localStorage.setItem(WEEKLY_RESET_KEY, now.toISOString());
-    }
-
     // ---- RENDER GERAL ----
     function renderAll(){
       renderMembers();
@@ -2132,7 +2065,6 @@
       setupThemeToggle();
       updateDate();
       renderAll();
-      setInterval(maybeWeeklyReset, 60 * 1000);
     });
   </script>
 </body>
