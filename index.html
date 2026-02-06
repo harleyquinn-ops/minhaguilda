@@ -51,7 +51,7 @@
     }
 
     form textarea {
-      flex: 1 1 300px;
+      flex: 1 1 250px;
       min-height: 40px;
       resize: vertical;
     }
@@ -142,7 +142,10 @@
 
     <form id="presence-form">
       <input type="text" id="nick" placeholder="Nick" required />
-      <textarea id="eventos" placeholder="Eventos" required></textarea>
+      <!-- Evento 1 -->
+      <textarea id="eventos1" placeholder="Evento 1" required></textarea>
+      <!-- Evento 2 (opcional, mas você pode exigir se quiser) -->
+      <textarea id="eventos2" placeholder="Evento 2 (opcional)"></textarea>
       <input type="date" id="data" required />
       <button type="submit" class="btn-add">Adicionar presença</button>
     </form>
@@ -155,10 +158,11 @@
     <table id="presence-table">
       <thead>
         <tr>
-          <th>nick</th>
-          <th>Eventos</th>
-          <th>data</th>
-          <th>ações</th>
+          <th>Nick</th>
+          <th>Evento 1</th>
+          <th>Evento 2</th>
+          <th>Data</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -172,12 +176,67 @@
     const tabela = document.getElementById('presence-table').querySelector('tbody');
     const btnClearAll = document.getElementById('clear-all');
 
+    // --- SISTEMA DE RESET AUTOMÁTICO DOMINGO 23h ---
+
+    // Salva a data/hora do último reset
+    function salvarUltimoReset(date) {
+      localStorage.setItem('ultimoResetPresencas', date.toISOString());
+    }
+
+    function obterUltimoReset() {
+      const valor = localStorage.getItem('ultimoResetPresencas');
+      if (!valor) return null;
+      const d = new Date(valor);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    // Calcula o último domingo às 23:00 (horário local) antes ou igual a agora
+    function ultimoDomingoAs23() {
+      const agora = new Date();
+      const d = new Date(
+        agora.getFullYear(),
+        agora.getMonth(),
+        agora.getDate(),
+        23, 0, 0, 0
+      );
+
+      // getDay(): 0 = domingo, 1 = segunda, ...
+      const diaSemana = d.getDay();
+      // Queremos o domingo desta semana (0), voltando a partir de hoje
+      const diff = diaSemana; // se hoje é domingo -> 0; segunda ->1; ...
+      d.setDate(d.getDate() - diff);
+
+      // Se ainda estamos antes de domingo 23h desta semana, volta mais 7 dias
+      if (agora < d) {
+        d.setDate(d.getDate() - 7);
+      }
+
+      return d;
+    }
+
+    function verificarResetAutomatico() {
+      const ultimoReset = obterUltimoReset();
+      const ultimoDomingo = ultimoDomingoAs23();
+
+      // Se nunca resetou ou o último reset foi antes do último domingo 23h, reseta
+      if (!ultimoReset || ultimoReset < ultimoDomingo) {
+        // Resetar presenças
+        tabela.innerHTML = '';
+        localStorage.removeItem('presencas');
+        salvarUltimoReset(new Date());
+      }
+    }
+
+    // --- FUNÇÕES DE PRESENÇA ---
+
     // Carrega do localStorage ao iniciar
     function carregarPresencas() {
+      verificarResetAutomatico();
+
       const dados = JSON.parse(localStorage.getItem('presencas') || '[]');
       tabela.innerHTML = '';
-      dados.forEach((item, index) => {
-        adicionarLinha(item.nick, item.eventos, item.data, index);
+      dados.forEach((item) => {
+        adicionarLinha(item.nick, item.eventos1, item.eventos2, item.data);
       });
     }
 
@@ -188,22 +247,26 @@
         const tds = tr.querySelectorAll('td');
         return {
           nick: tds[0].textContent,
-          eventos: tds[1].textContent,
-          data: tds[2].textContent
+          eventos1: tds[1].textContent,
+          eventos2: tds[2].textContent,
+          data: tds[3].textContent
         };
       });
       localStorage.setItem('presencas', JSON.stringify(dados));
     }
 
     // Cria uma linha na tabela
-    function adicionarLinha(nick, eventos, data, index) {
+    function adicionarLinha(nick, eventos1, eventos2, data) {
       const tr = document.createElement('tr');
 
       const tdNick = document.createElement('td');
       tdNick.textContent = nick;
 
-      const tdEventos = document.createElement('td');
-      tdEventos.textContent = eventos;
+      const tdEventos1 = document.createElement('td');
+      tdEventos1.textContent = eventos1;
+
+      const tdEventos2 = document.createElement('td');
+      tdEventos2.textContent = eventos2 || '';
 
       const tdData = document.createElement('td');
       tdData.textContent = data;
@@ -222,7 +285,8 @@
       tdAcoes.appendChild(btnDel);
 
       tr.appendChild(tdNick);
-      tr.appendChild(tdEventos);
+      tr.appendChild(tdEventos1);
+      tr.appendChild(tdEventos2);
       tr.appendChild(tdData);
       tr.appendChild(tdAcoes);
 
@@ -232,13 +296,16 @@
     // Submissão do formulário
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+      verificarResetAutomatico(); // garante que não está em semana antiga
+
       const nick = document.getElementById('nick').value.trim();
-      const eventos = document.getElementById('eventos').value.trim();
+      const eventos1 = document.getElementById('eventos1').value.trim();
+      const eventos2 = document.getElementById('eventos2').value.trim();
       const data = document.getElementById('data').value;
 
-      if (!nick || !eventos || !data) return;
+      if (!nick || !eventos1 || !data) return;
 
-      adicionarLinha(nick, eventos, data);
+      adicionarLinha(nick, eventos1, eventos2, data);
       salvarPresencas();
       form.reset();
     });
@@ -248,6 +315,7 @@
       if (confirm('Tem certeza que deseja apagar todas as presenças?')) {
         tabela.innerHTML = '';
         localStorage.removeItem('presencas');
+        salvarUltimoReset(new Date()); // considera como um reset manual
       }
     });
 
