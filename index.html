@@ -101,16 +101,25 @@
       <button class="btn btn-secondary" onclick="toggleTheme()">🌙 Tema</button>
     </div>
 
-    <!-- AÇÕES GLOBAIS: IMPORT/EXPORT -->
+    <!-- AÇÕES GLOBAIS -->
     <div class="card" id="global-actions">
       <h3>Importar / Exportar dados</h3>
       <p>Use estes botões para salvar ou carregar todos os dados do painel.</p>
       <div class="btn-row">
-        <button class="btn btn-secondary" onclick="importJSON()">Importar JSON</button>
-        <button class="btn btn-primary" onclick="exportJSON()">Exportar JSON</button>
-        <button class="btn btn-secondary" onclick="exportPDF()">Exportar PDF da aba atual</button>
+        <!-- JSON -->
+        <button class="btn btn-secondary" type="button" onclick="clickImportJSON()">Importar JSON</button>
+        <button class="btn btn-primary" type="button" onclick="exportJSON()">Exportar JSON</button>
+
+        <!-- PDF -->
+        <button class="btn btn-secondary" type="button" onclick="importPDF()">Importar PDF (visualização)</button>
+        <button class="btn btn-secondary" type="button" onclick="exportPDF()">Exportar PDF da aba atual</button>
       </div>
-      <input type="file" id="json-file-input" accept=".json" style="display:none" onchange="handleJSONFile(event)">
+
+      <!-- input de arquivo JSON -->
+      <input type="file" id="json-file-input" accept=".json,application/json" style="display:none">
+
+      <!-- input de arquivo PDF -->
+      <input type="file" id="pdf-file-input" accept="application/pdf,.pdf" style="display:none">
     </div>
 
     <div id="msgContainer"></div>
@@ -495,19 +504,6 @@
       repoItems: { 1: [], 2: [] }
     };
 
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          state = JSON.parse(raw);
-          console.log('✅ Estado carregado');
-        }
-      } catch (e) {
-        console.error('Erro ao carregar:', e);
-      }
-      renderAll();
-    }
-
     function saveState() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -638,27 +634,27 @@
     }
 
     // IMPORT / EXPORT JSON
-    function exportJSON() {
-      const dataStr = JSON.stringify(state, null, 2);
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `murders-painel-${new Date().toISOString().slice(0,10)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
 
-    function importJSON() {
+    function clickImportJSON() {
       const input = document.getElementById('json-file-input');
-      if (input) input.click();
+      if (!input) {
+        alert('Input de arquivo JSON não encontrado.');
+        return;
+      }
+      input.onchange = handleJSONFile;
+      input.value = '';
+      input.click();
     }
 
     function handleJSONFile(evt) {
-      const file = evt.target.files[0];
+      const file = evt.target.files && evt.target.files[0];
       if (!file) return;
+
+      if (!file.name.toLowerCase().endsWith('.json')) {
+        alert('Selecione um arquivo .json válido.');
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
@@ -667,19 +663,64 @@
             alert('Arquivo JSON inválido.');
             return;
           }
+          if (!imported.members || !imported.events || !imported.deliveries || !imported.repoItems) {
+            alert('JSON não possui a estrutura esperada (members, events, deliveries, repoItems).');
+            return;
+          }
           state = imported;
           saveState();
           renderAll();
           alert('Dados importados com sucesso.');
         } catch (err) {
           console.error(err);
-          alert('Erro ao ler o JSON.');
+          alert('Erro ao ler o JSON: ' + err.message);
         }
       };
-      reader.readAsText(file);
+      reader.readAsText(file, 'utf-8');
     }
 
-    // EXPORTAR PDF DA ABA ATUAL (usa print do navegador)
+    function exportJSON() {
+      try {
+        const dataStr = JSON.stringify(state, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `murders-painel-${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao exportar JSON: ' + err.message);
+      }
+    }
+
+    // IMPORT / EXPORT PDF
+
+    function importPDF() {
+      const input = document.getElementById('pdf-file-input');
+      if (!input) {
+        alert('Input de arquivo PDF não encontrado.');
+        return;
+      }
+      input.onchange = handlePDFFile;
+      input.value = '';
+      input.click();
+    }
+
+    function handlePDFFile(evt) {
+      const file = evt.target.files && evt.target.files[0];
+      if (!file) return;
+      if (!file.name.toLowerCase().endsWith('.pdf')) {
+        alert('Selecione um arquivo .pdf válido.');
+        return;
+      }
+      const url = URL.createObjectURL(file);
+      window.open(url, '_blank');
+    }
+
     function exportPDF() {
       const activeTab = document.querySelector('.tab.active');
       if (!activeTab) {
@@ -1334,6 +1375,19 @@
       buildWeekSelectors();
       renderWeeklyPresenceReport();
       renderWeeklyDeliveriesReport();
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          state = JSON.parse(raw);
+          console.log('✅ Estado carregado');
+        }
+      } catch (e) {
+        console.error('Erro ao carregar:', e);
+      }
+      renderAll();
     }
 
     window.addEventListener('load', loadState);
