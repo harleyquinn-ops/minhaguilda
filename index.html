@@ -944,6 +944,12 @@
           <label for="event-just">Justificativa (se houver)</label>
           <textarea id="event-just" class="textarea" rows="2" placeholder="Justificativa"></textarea>
         </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="event-keep-same" />
+            Continuar adicionando eventos para este nick e data
+          </label>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeEventModal()">Cancelar</button>
@@ -1356,12 +1362,14 @@
         fillEventNickOptions(e.nick);
         document.getElementById('event-status').value = e.status;
         document.getElementById('event-just').value = e.justificativa || '';
+        document.getElementById('event-keep-same').checked = false;
       } else {
         document.getElementById('event-date').value = todayBR();
         document.getElementById('event-name').value = 'Boss do clã';
         fillEventNickOptions(nickFromClick || '');
         document.getElementById('event-status').value = 'Presente';
         document.getElementById('event-just').value = '';
+        document.getElementById('event-keep-same').checked = false;
       }
       openModal('event-modal');
     }
@@ -1374,19 +1382,33 @@
       const nick = document.getElementById('event-nick').value.trim();
       const status = document.getElementById('event-status').value;
       const justificativa = document.getElementById('event-just').value.trim();
+      const keepSame = document.getElementById('event-keep-same')?.checked || false;
+
       if (!nick) { alert('Nick é obrigatório.'); return; }
       const dataISO = toISOFromBR(dataBR);
       const record = { data: dataISO, evento, nick, status, justificativa };
       const list = state.events[state.clan];
+
       if (idxStr !== '') {
         const idx = parseInt(idxStr,10);
-        if (!Number.isNaN(idx) && list[idx]) list[idx] = record;
+        if (!Number.isNaN(idx) && list[idx]) {
+          list[idx] = record;
+        }
       } else {
         list.push(record);
       }
+
       saveState();
-      closeEventModal();
       renderEvents();
+
+      if (keepSame) {
+        document.getElementById('event-name').value = 'Boss do clã';
+        document.getElementById('event-status').value = 'Presente';
+        document.getElementById('event-just').value = '';
+        document.getElementById('event-index').value = '';
+      } else {
+        closeEventModal();
+      }
     }
 
     function deleteEvent(index) {
