@@ -4,19 +4,20 @@
   <meta charset="UTF-8" />
   <title>Murders 1 & 2 - Painel do Clã</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Fonte arredondada do Google Fonts -->
+  <!-- Fonte arredondada -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <!-- jsPDF para exportar PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
   <style>
     :root {
-      --azul-escuro: #0f172a;
+      --azul-bebe: #bfdbfe;
       --azul: #2563eb;
-      --azul-claro: #dbeafe;
+      --azul-escuro: #1d4ed8;
       --branco: #ffffff;
       --cinza: #e5e7eb;
-      --cinza-escuro: #4b5563;
+      --cinza-texto: #4b5563;
+      --cinza-claro: #f3f4f6;
       --vermelho: #ef4444;
       --verde: #22c55e;
     }
@@ -29,8 +30,8 @@
     }
 
     body {
-      background: linear-gradient(135deg, #0b1120, #1d4ed8);
-      color: var(--branco);
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      color: #111827;
       min-height: 100vh;
       display: flex;
     }
@@ -38,30 +39,31 @@
     /* SIDEBAR */
     .sidebar {
       width: 260px;
-      background: rgba(15, 23, 42, 0.95);
-      backdrop-filter: blur(12px);
-      border-right: 1px solid rgba(148, 163, 184, 0.3);
+      background: var(--branco);
+      border-right: 1px solid var(--azul-bebe);
       padding: 24px 18px;
       display: flex;
       flex-direction: column;
       gap: 24px;
+      box-shadow: 4px 0 20px rgba(148, 163, 184, 0.25);
     }
 
     .brand {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
     }
 
     .brand-title {
       font-size: 22px;
       font-weight: 600;
       letter-spacing: 1px;
+      color: var(--azul-escuro);
     }
 
     .brand-sub {
       font-size: 13px;
-      color: #9ca3af;
+      color: var(--cinza-texto);
     }
 
     .clan-switch {
@@ -74,15 +76,15 @@
       flex: 1;
       padding: 6px 8px;
       border-radius: 999px;
-      border: 1px solid var(--azul-claro);
-      background: transparent;
-      color: var(--azul-claro);
+      border: 1px solid var(--azul-bebe);
+      background: var(--branco);
+      color: var(--azul-escuro);
       cursor: pointer;
       font-size: 12px;
     }
 
     .clan-btn.active {
-      background: var(--azul);
+      background: var(--azul-escuro);
       color: var(--branco);
     }
 
@@ -90,7 +92,7 @@
       font-size: 12px;
       letter-spacing: 1px;
       text-transform: uppercase;
-      color: #9ca3af;
+      color: var(--cinza-texto);
       margin-bottom: 6px;
     }
 
@@ -104,10 +106,10 @@
       width: 100%;
       text-align: left;
       padding: 10px 12px;
-      border-radius: 10px;
+      border-radius: 12px;
       border: none;
       cursor: pointer;
-      color: #d1d5db;
+      color: var(--cinza-texto);
       background: transparent;
       font-size: 14px;
       display: flex;
@@ -123,30 +125,31 @@
     }
 
     .nav-btn:hover {
-      background: rgba(37, 99, 235, 0.2);
-      color: var(--branco);
+      background: var(--azul-bebe);
     }
 
     .nav-btn.active {
-      background: var(--azul);
+      background: var(--azul-escuro);
       color: var(--branco);
     }
 
     .nav-icon {
-      width: 18px;
-      height: 18px;
-      border-radius: 6px;
-      background: rgba(37, 99, 235, 0.35);
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: var(--azul-bebe);
+      color: var(--azul-escuro);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: 11px;
+      font-weight: 600;
     }
 
     .sidebar-footer {
       margin-top: auto;
       font-size: 11px;
-      color: #9ca3af;
+      color: var(--cinza-texto);
     }
 
     /* MAIN */
@@ -167,27 +170,29 @@
     .topbar-title {
       font-size: 20px;
       font-weight: 500;
+      color: var(--azul-escuro);
     }
 
     .topbar-sub {
       font-size: 13px;
-      color: #e5e7eb;
+      color: var(--cinza-texto);
     }
 
     .date-badge {
       padding: 6px 12px;
       border-radius: 999px;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: var(--branco);
+      border: 1px solid var(--azul-bebe);
       font-size: 12px;
+      color: var(--cinza-texto);
     }
 
     .card {
-      background: rgba(15, 23, 42, 0.92);
+      background: var(--branco);
       border-radius: 18px;
       padding: 18px 18px 16px;
-      border: 1px solid rgba(148, 163, 184, 0.35);
-      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.65);
+      border: 1px solid var(--azul-bebe);
+      box-shadow: 0 12px 30px rgba(148, 163, 184, 0.35);
     }
 
     .card-header {
@@ -200,11 +205,12 @@
     .card-title {
       font-size: 18px;
       font-weight: 500;
+      color: var(--azul-escuro);
     }
 
     .card-sub {
       font-size: 13px;
-      color: #9ca3af;
+      color: var(--cinza-texto);
     }
 
     .actions-row {
@@ -224,17 +230,18 @@
       align-items: center;
       gap: 6px;
       transition: all 0.15s ease;
+      white-space: nowrap;
     }
 
     .btn-primary {
-      background: var(--azul);
+      background: var(--azul-escuro);
       color: var(--branco);
     }
 
     .btn-secondary {
-      background: rgba(15, 23, 42, 0.9);
-      color: #e5e7eb;
-      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: var(--branco);
+      color: var(--cinza-texto);
+      border: 1px solid var(--azul-bebe);
     }
 
     .btn-danger {
@@ -244,7 +251,7 @@
 
     .btn:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.45);
+      box-shadow: 0 4px 10px rgba(148, 163, 184, 0.45);
     }
 
     .filters-row {
@@ -257,16 +264,16 @@
 
     .input, .select {
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      background: rgba(15, 23, 42, 0.9);
-      color: var(--branco);
+      border: 1px solid var(--azul-bebe);
+      background: var(--branco);
+      color: #111827;
       padding: 6px 12px;
       font-size: 12px;
       outline: none;
     }
 
     .input::placeholder {
-      color: #9ca3af;
+      color: var(--cinza-texto);
     }
 
     .select {
@@ -275,10 +282,11 @@
 
     .table-wrapper {
       border-radius: 14px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
+      border: 1px solid var(--azul-bebe);
       overflow: hidden;
       max-height: 420px;
       overflow-y: auto;
+      background: var(--branco);
     }
 
     table {
@@ -288,13 +296,14 @@
     }
 
     thead {
-      background: rgba(30, 64, 175, 0.9);
+      background: var(--azul-bebe);
     }
 
     th, td {
       padding: 8px 10px;
       text-align: left;
-      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+      border-bottom: 1px solid var(--cinza);
+      color: #111827;
     }
 
     th {
@@ -302,11 +311,11 @@
     }
 
     tbody tr:nth-child(even) {
-      background: rgba(15, 23, 42, 0.95);
+      background: var(--cinza-claro);
     }
 
     tbody tr:nth-child(odd) {
-      background: rgba(15, 23, 42, 0.85);
+      background: var(--branco);
     }
 
     .tag {
@@ -314,22 +323,25 @@
       padding: 3px 8px;
       border-radius: 999px;
       font-size: 11px;
-      border: 1px solid rgba(148, 163, 184, 0.6);
+      border: 1px solid var(--cinza);
     }
 
     .tag-success {
       border-color: rgba(34, 197, 94, 0.7);
-      color: #bbf7d0;
+      color: #166534;
+      background: #bbf7d0;
     }
 
     .tag-danger {
       border-color: rgba(239, 68, 68, 0.7);
-      color: #fecaca;
+      color: #7f1d1d;
+      background: #fecaca;
     }
 
     .tag-warning {
       border-color: rgba(234, 179, 8, 0.7);
-      color: #fef3c7;
+      color: #92400e;
+      background: #fef3c7;
     }
 
     .table-actions {
@@ -337,11 +349,17 @@
       gap: 6px;
     }
 
-    .link-sm {
-      font-size: 11px;
-      color: var(--azul-claro);
-      cursor: pointer;
-      text-decoration: underline;
+    .webhook-box {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--cinza-texto);
+    }
+
+    .webhook-input {
+      flex: 1;
     }
 
     /* RESPONSIVO */
@@ -393,8 +411,7 @@
     </div>
 
     <div class="sidebar-footer">
-      Acesso multiusuário, ideal para organização de clã.<br />
-      Registre tudo da Murders em um só lugar.
+      Tudo salvo no navegador por clã (Murders 1 e 2). Ideal para organizar o dia a dia do clã.
     </div>
   </aside>
 
@@ -403,10 +420,24 @@
     <header class="topbar">
       <div>
         <div class="topbar-title" id="currentTabTitle">Membros</div>
-        <div class="topbar-sub">Gerencie Murders 1 e Murders 2 com organização total.</div>
+        <div class="topbar-sub">Gerencie Murders 1 e Murders 2 com presença, entregas e repositório.</div>
       </div>
       <div class="date-badge" id="currentDate"></div>
     </header>
+
+    <!-- CONFIG WEBHOOK -->
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Configuração de webhook do Discord</div>
+          <div class="card-sub">Cole aqui a URL do webhook que será usada em “Enviar para o Discord”.</div>
+        </div>
+      </div>
+      <div class="webhook-box">
+        <input id="webhookUrl" class="input webhook-input" placeholder="https://discord.com/api/webhooks/..." />
+        <button class="btn btn-secondary" onclick="saveWebhook()">Salvar</button>
+      </div>
+    </section>
 
     <!-- ABA: MEMBROS -->
     <section class="card" id="tab-members">
@@ -451,9 +482,7 @@
               <th>Ações</th>
             </tr>
           </thead>
-          <tbody id="members-body">
-            <!-- Preenchido via JS -->
-          </tbody>
+          <tbody id="members-body"></tbody>
         </table>
       </div>
     </section>
@@ -501,9 +530,7 @@
               <th>Ações</th>
             </tr>
           </thead>
-          <tbody id="events-body">
-            <!-- Preenchido via JS -->
-          </tbody>
+          <tbody id="events-body"></tbody>
         </table>
       </div>
     </section>
@@ -513,7 +540,7 @@
       <div class="card-header">
         <div>
           <div class="card-title">Entregas do clã</div>
-          <div class="card-sub">Controle tudo o que cada membro recebeu, por semana e por mês.</div>
+          <div class="card-sub">Controle semanal e relatório mensal do que cada membro recebeu.</div>
         </div>
       </div>
 
@@ -546,13 +573,10 @@
               <th>Ações</th>
             </tr>
           </thead>
-          <tbody id="deliveries-body">
-            <!-- Preenchido via JS -->
-          </tbody>
+          <tbody id="deliveries-body"></tbody>
         </table>
       </div>
 
-      <!-- Relatório mensal (renderizado em tabela separada quando chamado) -->
       <div class="card" id="monthly-report-card" style="margin-top:14px; display:none;">
         <div class="card-header">
           <div>
@@ -571,9 +595,7 @@
                 <th>Resumo de entregas</th>
               </tr>
             </thead>
-            <tbody id="monthly-report-body">
-              <!-- Preenchido via JS -->
-            </tbody>
+            <tbody id="monthly-report-body"></tbody>
           </table>
         </div>
       </div>
@@ -584,7 +606,7 @@
       <div class="card-header">
         <div>
           <div class="card-title">Repositório do clã</div>
-          <div class="card-sub">Anotações, regras, estratégias e tudo que o clã precisar.</div>
+          <div class="card-sub">Anotações, regras, estratégias e o que o clã precisar.</div>
         </div>
       </div>
 
@@ -610,25 +632,77 @@
               <th>Ações</th>
             </tr>
           </thead>
-          <tbody id="repo-body">
-            <!-- Preenchido via JS -->
-          </tbody>
+          <tbody id="repo-body"></tbody>
         </table>
       </div>
     </section>
   </main>
 
-  <!-- JS -->
   <script>
-    // Estado em memória por clã
-    const state = {
+    // ---------- HELPERS DE DATA (dd/mm/aaaa <-> ISO) ----------
+    function toISOFromBR(brDate) {
+      // brDate: dd/mm/aaaa
+      const [d, m, y] = brDate.split('/');
+      if (!d || !m || !y) return '';
+      return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+    }
+
+    function toBRFromISO(isoDate) {
+      // isoDate: aaaa-mm-dd
+      if (!isoDate) return '';
+      const [y, m, d] = isoDate.split('-');
+      if (!y || !m || !d) return '';
+      return `${d.padStart(2,'0')}/${m.padStart(2,'0')}/${y}`;
+    }
+
+    function todayBR() {
+      const now = new Date();
+      const d = String(now.getDate()).padStart(2,'0');
+      const m = String(now.getMonth()+1).padStart(2,'0');
+      const y = now.getFullYear();
+      return `${d}/${m}/${y}`;
+    }
+
+    function todayISO() {
+      const now = new Date();
+      const d = String(now.getDate()).padStart(2,'0');
+      const m = String(now.getMonth()+1).padStart(2,'0');
+      const y = now.getFullYear();
+      return `${y}-${m}-${d}`;
+    }
+
+    // ---------- ESTADO E LOCALSTORAGE ----------
+    const STORAGE_KEY = 'murders-dashboard-v1';
+    let state = {
       clan: 1,
+      webhookUrl: '',
       members: { 1: [], 2: [] },
       events: { 1: [], 2: [] },
       deliveries: { 1: [], 2: [] },
       repo: { 1: [], 2: [] },
       clipboardRepo: ''
     };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          // Faz merge simples
+          state = Object.assign(state, parsed);
+        }
+      } catch (e) {
+        console.warn('Erro ao carregar localStorage', e);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn('Erro ao salvar localStorage', e);
+      }
+    }
 
     function setClan(clan) {
       state.clan = clan;
@@ -654,11 +728,44 @@
       document.getElementById('currentTabTitle').textContent = titles[tab] || '';
     }
 
-    // Data atual
     function updateDate() {
-      const now = new Date();
-      const format = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      document.getElementById('currentDate').textContent = 'Hoje: ' + format;
+      document.getElementById('currentDate').textContent = 'Hoje: ' + todayBR();
+    }
+
+    // ---------- WEBHOOK ----------
+    function saveWebhook() {
+      const input = document.getElementById('webhookUrl');
+      state.webhookUrl = input.value.trim();
+      saveState();
+      alert('Webhook salvo para este navegador.');
+    }
+
+    function loadWebhookToInput() {
+      document.getElementById('webhookUrl').value = state.webhookUrl || '';
+    }
+
+    function sendToDiscord(tipo) {
+      const webhookUrl = (state.webhookUrl || '').trim();
+      if (!webhookUrl) {
+        alert('Defina primeiro a URL do webhook do Discord na caixa acima.');
+        return;
+      }
+      const msg = `Atualização do painel Murders (${tipo}) • Clã ${state.clan} • ${todayBR()}`;
+
+      // Para usar de verdade, descomente este bloco:
+      /*
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: msg })
+      }).then(() => {
+        alert('Enviado para o Discord!');
+      }).catch(() => {
+        alert('Falha ao enviar para o Discord. Confira a URL do webhook.');
+      });
+      */
+
+      alert('Simulação de envio para o Discord:\n\n' + msg + '\n\nWebhook: ' + webhookUrl);
     }
 
     // ---------- MEMBROS ----------
@@ -669,6 +776,7 @@
       let defaultLevel = '';
       let defaultPower = '';
       let defaultClasse = 'Arqueira';
+      let defaultDataBR = todayBR();
 
       if (isEdit) {
         const m = currentMembers[existingIndex];
@@ -676,27 +784,32 @@
         defaultLevel = m.level;
         defaultPower = m.power;
         defaultClasse = m.classe;
+        defaultDataBR = toBRFromISO(m.data);
       }
 
       const nick = prompt('Nick do membro:', defaultNick);
       if (!nick) return;
       const level = prompt('Level:', defaultLevel);
       const power = prompt('Power:', defaultPower);
-      const classe = prompt('Classe (Arqueira, Bardo, Berserker, Maga ou Lanceiro):', defaultClasse);
+      const classe = prompt('Classe (Arqueira, Bardo, Berserker, Maga ou Lanceiro):', defaultClasse) || defaultClasse;
+      const dataBR = prompt('Data (dd/mm/aaaa):', defaultDataBR) || defaultDataBR;
+      const dataISO = toISOFromBR(dataBR);
 
-      const data = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      const record = { nick, level, power, classe, data: dataISO };
 
       if (isEdit) {
-        currentMembers[existingIndex] = { nick, level, power, classe, data };
+        currentMembers[existingIndex] = record;
       } else {
-        currentMembers.push({ nick, level, power, classe, data });
+        currentMembers.push(record);
       }
+      saveState();
       renderMembers();
     }
 
     function deleteMember(index) {
       if (!confirm('Excluir este membro?')) return;
       state.members[state.clan].splice(index, 1);
+      saveState();
       renderMembers();
     }
 
@@ -714,7 +827,6 @@
         list = list.filter(m => m.classe === filterClass);
       }
 
-      // ordem alfabética por nick
       list.sort((a, b) => a.nick.localeCompare(b.nick, 'pt-BR'));
 
       list.forEach((m, idx) => {
@@ -724,7 +836,7 @@
           <td>${m.level || ''}</td>
           <td>${m.power || ''}</td>
           <td>${m.classe || ''}</td>
-          <td>${m.data || ''}</td>
+          <td>${toBRFromISO(m.data) || ''}</td>
           <td>
             <div class="table-actions">
               <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="openMemberForm(${idx})">Editar</button>
@@ -744,7 +856,7 @@
       let defEvento = 'Boss do clã';
       let defStatus = 'Presente';
       let defJust = '';
-      let defData = new Date().toISOString().slice(0, 10);
+      let defDataBR = todayBR();
 
       if (isEdit) {
         const e = currentEvents[existingIndex];
@@ -752,34 +864,37 @@
         defEvento = e.evento;
         defStatus = e.status;
         defJust = e.justificativa || '';
-        defData = e.data;
+        defDataBR = toBRFromISO(e.data);
       }
 
-      const data = prompt('Data (AAAA-MM-DD):', defData);
-      if (!data) return;
+      const dataBR = prompt('Data (dd/mm/aaaa):', defDataBR);
+      if (!dataBR) return;
       const evento = prompt('Evento (Guerra da coroa, Interserver, Boss do clã, Ilha de Sindri, Copa Ymir):', defEvento);
       if (!evento) return;
       const nick = prompt('Nick:', defNick);
       if (!nick) return;
-      const status = prompt('Status (Presente, Faltou, Justificou):', defStatus);
+      const status = prompt('Status (Presente, Faltou, Justificou):', defStatus) || defStatus;
       let justificativa = defJust;
       if (status === 'Faltou' || status === 'Justificou') {
         justificativa = prompt('Justificativa (se houver):', justificativa) || '';
       }
 
-      const record = { data, evento, nick, status, justificativa };
+      const dataISO = toISOFromBR(dataBR);
+      const record = { data: dataISO, evento, nick, status, justificativa };
 
       if (isEdit) {
         currentEvents[existingIndex] = record;
       } else {
         currentEvents.push(record);
       }
+      saveState();
       renderEvents();
     }
 
     function deleteEvent(index) {
       if (!confirm('Excluir este registro de presença?')) return;
       state.events[state.clan].splice(index, 1);
+      saveState();
       renderEvents();
     }
 
@@ -798,7 +913,6 @@
         list = list.filter(e => e.status === filterStatus);
       }
 
-      // ordem alfabética: primeiro evento, depois nick
       list.sort((a, b) => {
         const ev = a.evento.localeCompare(b.evento, 'pt-BR');
         if (ev !== 0) return ev;
@@ -811,7 +925,7 @@
         if (e.status === 'Justificou') tagClass = 'tag-warning';
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${e.data}</td>
+          <td>${toBRFromISO(e.data)}</td>
           <td>${e.evento}</td>
           <td>${e.nick}</td>
           <td><span class="tag ${tagClass}">${e.status}</span></td>
@@ -831,39 +945,42 @@
     function openDeliveryForm(existingIndex = null) {
       const isEdit = existingIndex !== null;
       const current = state.deliveries[state.clan];
-      let defData = new Date().toISOString().slice(0, 10);
+      let defDataBR = todayBR();
       let defNick = '';
       let defClasse = 'Arqueira';
       let defDesc = '';
 
       if (isEdit) {
         const d = current[existingIndex];
-        defData = d.data;
+        defDataBR = toBRFromISO(d.data);
         defNick = d.nick;
         defClasse = d.classe;
         defDesc = d.descricao;
       }
 
-      const data = prompt('Data (AAAA-MM-DD):', defData);
-      if (!data) return;
+      const dataBR = prompt('Data (dd/mm/aaaa):', defDataBR);
+      if (!dataBR) return;
       const nick = prompt('Nick:', defNick);
       if (!nick) return;
-      const classe = prompt('Classe (Arqueira, Bardo, Berserker, Maga ou Lanceiro):', defClasse);
-      const descricao = prompt('Descrição da entrega:', defDesc);
+      const classe = prompt('Classe (Arqueira, Bardo, Berserker, Maga ou Lanceiro):', defClasse) || defClasse;
+      const descricao = prompt('Descrição da entrega:', defDesc) || '';
 
-      const record = { data, nick, classe, descricao };
+      const dataISO = toISOFromBR(dataBR);
+      const record = { data: dataISO, nick, classe, descricao };
 
       if (isEdit) {
         current[existingIndex] = record;
       } else {
         current.push(record);
       }
+      saveState();
       renderDeliveries();
     }
 
     function deleteDelivery(index) {
       if (!confirm('Excluir esta entrega?')) return;
       state.deliveries[state.clan].splice(index, 1);
+      saveState();
       renderDeliveries();
     }
 
@@ -881,13 +998,12 @@
         list = list.filter(d => d.classe === filterClass);
       }
 
-      // ordem alfabética por nick
       list.sort((a, b) => a.nick.localeCompare(b.nick, 'pt-BR'));
 
       list.forEach((d, idx) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${d.data}</td>
+          <td>${toBRFromISO(d.data)}</td>
           <td>${d.nick}</td>
           <td>${d.classe}</td>
           <td>${d.descricao || ''}</td>
@@ -948,28 +1064,30 @@
       const current = state.repo[state.clan];
       let defTitulo = '';
       let defConteudo = '';
-      let defData = new Date().toISOString().slice(0, 10);
+      let defDataBR = todayBR();
 
       if (isEdit) {
         const r = current[existingIndex];
         defTitulo = r.titulo;
         defConteudo = r.conteudo;
-        defData = r.data;
+        defDataBR = toBRFromISO(r.data);
       }
 
       const titulo = prompt('Título:', defTitulo);
       if (!titulo) return;
-      const data = prompt('Data (AAAA-MM-DD):', defData);
-      if (!data) return;
-      const conteudo = prompt('Conteúdo:', defConteudo);
+      const dataBR = prompt('Data (dd/mm/aaaa):', defDataBR);
+      if (!dataBR) return;
+      const conteudo = prompt('Conteúdo:', defConteudo) || '';
 
-      const record = { titulo, data, conteudo };
+      const dataISO = toISOFromBR(dataBR);
+      const record = { titulo, data: dataISO, conteudo };
 
       if (isEdit) {
         current[existingIndex] = record;
       } else {
         current.push(record);
       }
+      saveState();
       renderRepo();
     }
 
@@ -980,15 +1098,18 @@
     function deleteRepo(index) {
       if (!confirm('Excluir esta entrada do repositório?')) return;
       state.repo[state.clan].splice(index, 1);
+      saveState();
       renderRepo();
     }
 
     function copyRepo() {
       const all = state.repo[state.clan]
+        .slice()
         .sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'))
-        .map(r => `• ${r.titulo} (${r.data}) - ${r.conteudo}`)
+        .map(r => `• ${r.titulo} (${toBRFromISO(r.data)}) - ${r.conteudo}`)
         .join('\n');
       state.clipboardRepo = all;
+      saveState();
       navigator.clipboard.writeText(all).catch(() => {});
       alert('Repositório copiado (quando possível) para a área de transferência.');
     }
@@ -1011,7 +1132,7 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${r.titulo}</td>
-          <td>${r.data}</td>
+          <td>${toBRFromISO(r.data)}</td>
           <td>${r.conteudo}</td>
           <td>
             <div class="table-actions">
@@ -1047,31 +1168,8 @@
 
     function importPdfPlaceholder(event) {
       if (event.target.files && event.target.files[0]) {
-        alert('Importar PDF aqui é apenas um placeholder visual. A importação real exigiria backend ou leitura avançada de PDF.');
+        alert('Importar PDF aqui é apenas visual. A importação real exigiria backend ou leitura avançada de PDF.');
       }
-    }
-
-    // ---------- DISCORD ----------
-    function sendToDiscord(tipo) {
-      // Para usar de verdade:
-      // 1. Crie um webhook no canal do Discord.
-      // 2. Troque a URL abaixo pela URL do seu webhook.
-      const webhookUrl = 'https://discord.com/api/webhooks/COLOQUE_AQUI_SEU_WEBHOOK';
-      const mensagem = `Atualização do painel Murders: ${tipo} (clã ${state.clan}).`;
-
-      // Exemplo simples de envio; pode ser comentado enquanto não tiver webhook:
-      /*
-      fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: mensagem })
-      }).then(() => {
-        alert('Enviado para o Discord!');
-      }).catch(() => {
-        alert('Falha ao enviar para o Discord. Confira a URL do webhook.');
-      });
-      */
-      alert('Aqui vai o envio para Discord via webhook.\n\nMensagem simulada:\n' + mensagem);
     }
 
     // ---------- RENDER GERAL ----------
@@ -1080,12 +1178,14 @@
       renderEvents();
       renderDeliveries();
       renderRepo();
+      loadWebhookToInput();
       if (document.getElementById('monthly-report-card').style.display !== 'none') {
         renderMonthlyReport();
       }
     }
 
     // Inicialização
+    loadState();
     updateDate();
     renderAll();
   </script>
