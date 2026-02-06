@@ -520,7 +520,7 @@
     </div>
 
     <div class="sidebar-footer">
-      Tudo salvo no navegador por clã; layout novo com lógica do painel antigo. [file:16]
+      Tudo salvo no navegador por clã; layout novo com lógica do painel antigo.
     </div>
   </aside>
 
@@ -620,6 +620,8 @@
 
       <div class="actions-row">
         <button class="btn btn-primary" onclick="openEventModal()">+ Registrar presença</button>
+        <button class="btn btn-danger" onclick="clearEventsForSelectedDay()">Apagar</button>
+        <button class="btn btn-danger" onclick="clearAllEvents()">Apagar tudo</button>
         <button class="btn btn-secondary" onclick="sendToDiscord('presencas')">Enviar para o Discord</button>
       </div>
 
@@ -913,6 +915,17 @@
         <div class="form-group">
           <label for="event-name">Evento</label>
           <select id="event-name" class="select">
+            <option>Boss do clã</option>
+            <option>Copa Ymir</option>
+            <option>Guerra da coroa</option>
+            <option>Ilha de Sindri</option>
+            <option>Interserver</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="event-name-2">Outro evento (mesmo dia, opcional)</label>
+          <select id="event-name-2" class="select">
+            <option value="">Nenhum</option>
             <option>Boss do clã</option>
             <option>Copa Ymir</option>
             <option>Guerra da coroa</option>
@@ -1313,6 +1326,7 @@
     function openEventModal(index = null) {
       document.getElementById('event-index').value = index !== null ? index : '';
       document.getElementById('event-modal-title').textContent = index !== null ? 'Editar presença' : 'Registrar presença';
+      const secondSelect = document.getElementById('event-name-2');
       if (index !== null) {
         const e = state.events[state.clan][index];
         if (!e) return;
@@ -1321,12 +1335,14 @@
         document.getElementById('event-nick').value = e.nick;
         document.getElementById('event-status').value = e.status;
         document.getElementById('event-just').value = e.justificativa || '';
+        if (secondSelect) secondSelect.value = '';
       } else {
         document.getElementById('event-date').value = todayBR();
         document.getElementById('event-name').value = 'Boss do clã';
         document.getElementById('event-nick').value = '';
         document.getElementById('event-status').value = 'Presente';
         document.getElementById('event-just').value = '';
+        if (secondSelect) secondSelect.value = '';
       }
       openModal('event-modal');
     }
@@ -1335,19 +1351,29 @@
       const idxStr = document.getElementById('event-index').value;
       const dataBR = document.getElementById('event-date').value.trim() || todayBR();
       const evento = document.getElementById('event-name').value;
+      const evento2 = document.getElementById('event-name-2') ? document.getElementById('event-name-2').value : '';
       const nick = document.getElementById('event-nick').value.trim();
       const status = document.getElementById('event-status').value;
       const justificativa = document.getElementById('event-just').value.trim();
       if (!nick) { alert('Nick é obrigatório.'); return; }
       const dataISO = toISOFromBR(dataBR);
-      const record = { data: dataISO, evento, nick, status, justificativa };
       const list = state.events[state.clan];
+
       if (idxStr !== '') {
         const idx = parseInt(idxStr,10);
-        if (!Number.isNaN(idx) && list[idx]) list[idx] = record;
-      } else {
-        list.push(record);
+        const old = list[idx];
+        if (old) {
+          const dataAlvo = old.data;
+          const nickAlvo = old.nick;
+          state.events[state.clan] = list.filter(e => !(e.data === dataAlvo && e.nick === nickAlvo));
+        }
       }
+
+      list.push({ data: dataISO, evento, nick, status, justificativa });
+      if (evento2) {
+        list.push({ data: dataISO, evento: evento2, nick, status, justificativa });
+      }
+
       saveState();
       closeEventModal();
       renderEvents();
@@ -1359,6 +1385,30 @@
       renderEvents();
       buildWeekSelectors();
     }
+
+    function clearEventsForSelectedDay() {
+      const dataBR = prompt('Informe a data para apagar as presenças (dd/mm/aaaa):');
+      if (!dataBR) return;
+      const dataISO = toISOFromBR(dataBR);
+      if (!dataISO) {
+        alert('Data inválida.');
+        return;
+      }
+      if (!confirm(`Apagar TODAS as presenças deste clã na data ${dataBR}?`)) return;
+      state.events[state.clan] = (state.events[state.clan] || []).filter(e => e.data !== dataISO);
+      saveState();
+      renderEvents();
+      buildWeekSelectors();
+    }
+
+    function clearAllEvents() {
+      if (!confirm('Tem certeza que quer apagar TODAS as presenças deste clã? Não dá para desfazer.')) return;
+      state.events[state.clan] = [];
+      saveState();
+      renderEvents();
+      buildWeekSelectors();
+    }
+
     function renderEvents() {
       const body = document.getElementById('events-body');
       if (!body) return;
@@ -1631,7 +1681,6 @@
       const boss = document.getElementById('repoBoss').value.trim();
       const qtdStr = document.getElementById('repoQuantity').value.trim();
       if (!itemNome) { alert('Informe o nome do item.'); return; }
-
       const qtdNum = qtdStr === '' ? 0 : parseInt(qtdStr, 10);
       const list = state.repoItems[state.clan] || (state.repoItems[state.clan] = []);
 
@@ -2045,6 +2094,25 @@
       doc.save(`${titulo}-clan${state.clan}.pdf`);
     }
 
+    // ---- RESET SEMANAL DE PRESENÇA (DOMINGO 23h) ----
+    const WEEKLY_RESET_KEY = 'murders-weekly-reset-v1';
+    function maybeWeeklyReset() {
+      const now = new Date();
+      const lastResetStr = localStorage.getItem(WEEKLY_RESET_KEY);
+      const lastReset = lastResetStr ? new Date(lastResetStr) : null;
+
+      if (now.getDay() !== 0 || now.getHours() !== 23) return;
+
+      if (lastReset && now.toDateString() === lastReset.toDateString()) return;
+
+      state.events[state.clan] = [];
+      saveState();
+      buildWeekSelectors();
+      renderEvents();
+
+      localStorage.setItem(WEEKLY_RESET_KEY, now.toISOString());
+    }
+
     // ---- RENDER GERAL ----
     function renderAll(){
       renderMembers();
@@ -2064,6 +2132,7 @@
       setupThemeToggle();
       updateDate();
       renderAll();
+      setInterval(maybeWeeklyReset, 60 * 1000);
     });
   </script>
 </body>
