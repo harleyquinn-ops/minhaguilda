@@ -11,16 +11,41 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
   <style>
     :root {
+      /* Tema claro */
+      --bg-gradient: linear-gradient(135deg, #eff6ff, #dbeafe);
+      --sidebar-bg: #ffffff;
+      --sidebar-border: #bfdbfe;
+      --main-text: #111827;
+      --muted-text: #4b5563;
       --azul-bebe: #bfdbfe;
       --azul: #2563eb;
       --azul-escuro: #1d4ed8;
-      --branco: #ffffff;
-      --cinza: #e5e7eb;
-      --cinza-texto: #4b5563;
-      --cinza-claro: #f3f4f6;
-      --vermelho: #ef4444;
-      --verde: #22c55e;
+      --card-bg: #ffffff;
+      --card-border: #bfdbfe;
+      --table-border: #e5e7eb;
+      --table-alt: #f3f4f6;
       --modal-bg: rgba(15, 23, 42, 0.5);
+      --danger: #ef4444;
+      --success: #22c55e;
+    }
+
+    html[data-theme="dark"] {
+      /* Tema escuro */
+      --bg-gradient: linear-gradient(135deg, #020617, #0f172a);
+      --sidebar-bg: #020617;
+      --sidebar-border: #1d4ed8;
+      --main-text: #e5e7eb;
+      --muted-text: #9ca3af;
+      --azul-bebe: #1d4ed8;
+      --azul: #3b82f6;
+      --azul-escuro: #60a5fa;
+      --card-bg: #020617;
+      --card-border: #1f2937;
+      --table-border: #111827;
+      --table-alt: #020617;
+      --modal-bg: rgba(15, 23, 42, 0.8);
+      --danger: #f87171;
+      --success: #22c55e;
     }
 
     * {
@@ -31,8 +56,8 @@
     }
 
     body {
-      background: linear-gradient(135deg, #eff6ff, #dbeafe);
-      color: #111827;
+      background: var(--bg-gradient);
+      color: var(--main-text);
       min-height: 100vh;
       display: flex;
     }
@@ -40,13 +65,13 @@
     /* SIDEBAR */
     .sidebar {
       width: 260px;
-      background: var(--branco);
-      border-right: 1px solid var(--azul-bebe);
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
       padding: 24px 18px;
       display: flex;
       flex-direction: column;
       gap: 24px;
-      box-shadow: 4px 0 20px rgba(148, 163, 184, 0.25);
+      box-shadow: 4px 0 20px rgba(15, 23, 42, 0.35);
     }
 
     .brand {
@@ -64,7 +89,7 @@
 
     .brand-sub {
       font-size: 13px;
-      color: var(--cinza-texto);
+      color: var(--muted-text);
     }
 
     .clan-switch {
@@ -78,7 +103,7 @@
       padding: 6px 8px;
       border-radius: 999px;
       border: 1px solid var(--azul-bebe);
-      background: var(--branco);
+      background: var(--sidebar-bg);
       color: var(--azul-escuro);
       cursor: pointer;
       font-size: 12px;
@@ -86,14 +111,14 @@
 
     .clan-btn.active {
       background: var(--azul-escuro);
-      color: var(--branco);
+      color: #ffffff;
     }
 
     .nav-section-title {
       font-size: 12px;
       letter-spacing: 1px;
       text-transform: uppercase;
-      color: var(--cinza-texto);
+      color: var(--muted-text);
       margin-bottom: 6px;
     }
 
@@ -110,7 +135,7 @@
       border-radius: 12px;
       border: none;
       cursor: pointer;
-      color: var(--cinza-texto);
+      color: var(--muted-text);
       background: transparent;
       font-size: 14px;
       display: flex;
@@ -126,12 +151,12 @@
     }
 
     .nav-btn:hover {
-      background: var(--azul-bebe);
+      background: rgba(191, 219, 254, 0.2);
     }
 
     .nav-btn.active {
       background: var(--azul-escuro);
-      color: var(--branco);
+      color: #ffffff;
     }
 
     .nav-icon {
@@ -150,7 +175,7 @@
     .sidebar-footer {
       margin-top: auto;
       font-size: 11px;
-      color: var(--cinza-texto);
+      color: var(--muted-text);
     }
 
     /* MAIN */
@@ -176,24 +201,37 @@
 
     .topbar-sub {
       font-size: 13px;
-      color: var(--cinza-texto);
+      color: var(--muted-text);
     }
 
     .date-badge {
       padding: 6px 12px;
       border-radius: 999px;
-      background: var(--branco);
-      border: 1px solid var(--azul-bebe);
+      background: var(--sidebar-bg);
+      border: 1px solid var(--sidebar-border);
       font-size: 12px;
-      color: var(--cinza-texto);
+      color: var(--muted-text);
+    }
+
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--sidebar-border);
+      background: var(--sidebar-bg);
+      cursor: pointer;
+      font-size: 11px;
+      color: var(--muted-text);
     }
 
     .card {
-      background: var(--branco);
+      background: var(--card-bg);
       border-radius: 18px;
       padding: 18px 18px 16px;
-      border: 1px solid var(--azul-bebe);
-      box-shadow: 0 12px 30px rgba(148, 163, 184, 0.35);
+      border: 1px solid var(--card-border);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
       margin-bottom: 12px;
     }
 
@@ -212,7 +250,7 @@
 
     .card-sub {
       font-size: 13px;
-      color: var(--cinza-texto);
+      color: var(--muted-text);
     }
 
     .actions-row {
@@ -237,23 +275,23 @@
 
     .btn-primary {
       background: var(--azul-escuro);
-      color: var(--branco);
+      color: #ffffff;
     }
 
     .btn-secondary {
-      background: var(--branco);
-      color: var(--cinza-texto);
-      border: 1px solid var(--azul-bebe);
+      background: var(--sidebar-bg);
+      color: var(--muted-text);
+      border: 1px solid var(--sidebar-border);
     }
 
     .btn-danger {
-      background: var(--vermelho);
-      color: var(--branco);
+      background: var(--danger);
+      color: #ffffff;
     }
 
     .btn:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(148, 163, 184, 0.45);
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.45);
     }
 
     .filters-row {
@@ -266,9 +304,9 @@
 
     .input, .select, .textarea {
       border-radius: 999px;
-      border: 1px solid var(--azul-bebe);
-      background: var(--branco);
-      color: #111827;
+      border: 1px solid var(--sidebar-border);
+      background: var(--sidebar-bg);
+      color: var(--main-text);
       padding: 6px 12px;
       font-size: 12px;
       outline: none;
@@ -280,7 +318,7 @@
     }
 
     .input::placeholder {
-      color: var(--cinza-texto);
+      color: var(--muted-text);
     }
 
     .select {
@@ -289,11 +327,11 @@
 
     .table-wrapper {
       border-radius: 14px;
-      border: 1px solid var(--azul-bebe);
+      border: 1px solid var(--sidebar-border);
       overflow: hidden;
       max-height: 420px;
       overflow-y: auto;
-      background: var(--branco);
+      background: var(--card-bg);
     }
 
     table {
@@ -306,11 +344,15 @@
       background: var(--azul-bebe);
     }
 
+    html[data-theme="dark"] thead {
+      background: #1e293b;
+    }
+
     th, td {
       padding: 8px 10px;
       text-align: left;
-      border-bottom: 1px solid var(--cinza);
-      color: #111827;
+      border-bottom: 1px solid var(--table-border);
+      color: var(--main-text);
     }
 
     th {
@@ -318,11 +360,11 @@
     }
 
     tbody tr:nth-child(even) {
-      background: var(--cinza-claro);
+      background: var(--table-alt);
     }
 
     tbody tr:nth-child(odd) {
-      background: var(--branco);
+      background: var(--card-bg);
     }
 
     .tag {
@@ -330,7 +372,7 @@
       padding: 3px 8px;
       border-radius: 999px;
       font-size: 11px;
-      border: 1px solid var(--cinza);
+      border: 1px solid var(--table-border);
     }
 
     .tag-success {
@@ -362,7 +404,7 @@
       gap: 8px;
       align-items: center;
       font-size: 12px;
-      color: var(--cinza-texto);
+      color: var(--muted-text);
     }
 
     .webhook-input {
@@ -384,7 +426,7 @@
     .modal {
       width: 100%;
       max-width: 520px;
-      background: var(--branco);
+      background: var(--card-bg);
       border-radius: 14px;
       padding: 16px 18px 14px;
       box-shadow: 0 14px 40px rgba(15, 23, 42, 0.55);
@@ -419,7 +461,7 @@
 
     .form-group label {
       font-size: 11px;
-      color: var(--cinza-texto);
+      color: var(--muted-text);
     }
 
     .modal-footer {
@@ -428,7 +470,6 @@
       gap: 8px;
     }
 
-    /* RESPONSIVO */
     @media (max-width: 900px) {
       body {
         flex-direction: column;
@@ -477,7 +518,7 @@
     </div>
 
     <div class="sidebar-footer">
-      Tudo salvo no navegador por clã (Murders 1 e 2). Perfeito para centralizar a gestão. [file:16]
+      Tudo salvo no navegador por clã. Ideal para organizar Murders 1 e Murders 2. [file:16]
     </div>
   </aside>
 
@@ -488,7 +529,13 @@
         <div class="topbar-title" id="currentTabTitle">Membros</div>
         <div class="topbar-sub">Controle de membros, presença, entregas e repositório em um só lugar.</div>
       </div>
-      <div class="date-badge" id="currentDate"></div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button id="theme-toggle" class="theme-toggle">
+          <span id="theme-toggle-icon">🌙</span>
+          <span id="theme-toggle-text">Modo escuro</span>
+        </button>
+        <div class="date-badge" id="currentDate"></div>
+      </div>
     </header>
 
     <!-- CONFIG WEBHOOK -->
@@ -558,7 +605,7 @@
       <div class="card-header">
         <div>
           <div class="card-title">Presença em eventos</div>
-          <div class="card-sub">Registre presença, falta e justificativa por evento.</div>
+          <div class="card-sub">Resumo diário por nick com eventos presentes, faltas e justificativas.</div>
         </div>
       </div>
 
@@ -589,10 +636,8 @@
           <thead>
             <tr>
               <th>Data</th>
-              <th>Evento</th>
+              <th>Resumo de eventos</th>
               <th>Nick</th>
-              <th>Status</th>
-              <th>Justificativa</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -672,12 +717,12 @@
       <div class="card-header">
         <div>
           <div class="card-title">Repositório do clã</div>
-          <div class="card-sub">Regras, estratégias, notas e o que o clã precisar.</div>
+          <div class="card-sub">Estoque do clã, em ordem alfabética por item.</div>
         </div>
       </div>
 
       <div class="actions-row">
-        <button class="btn btn-primary" onclick="openRepoModal()">+ Nova entrada</button>
+        <button class="btn btn-primary" onclick="openRepoModal()">+ Novo item</button>
         <button class="btn btn-secondary" onclick="copyRepo()">Copiar</button>
         <button class="btn btn-secondary" onclick="pasteRepo()">Colar</button>
         <button class="btn btn-secondary" onclick="exportRepoToPDF()">Exportar PDF</button>
@@ -692,9 +737,10 @@
         <table id="repo-table">
           <thead>
             <tr>
-              <th>Título</th>
+              <th>Qtd</th>
+              <th>Item</th>
               <th>Data</th>
-              <th>Conteúdo</th>
+              <th>Observação</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -837,22 +883,26 @@
   <div class="modal-overlay" id="repo-modal">
     <div class="modal">
       <div class="modal-header">
-        <div class="modal-title" id="repo-modal-title">Nova entrada</div>
+        <div class="modal-title" id="repo-modal-title">Novo item</div>
         <button class="btn btn-secondary" onclick="closeRepoModal()">Fechar</button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="repo-index" />
         <div class="form-group">
-          <label for="repo-title">Título</label>
-          <input id="repo-title" class="input" placeholder="Título" />
+          <label for="repo-title">Item</label>
+          <input id="repo-title" class="input" placeholder="Nome do item" />
+        </div>
+        <div class="form-group">
+          <label for="repo-qty">Quantidade</label>
+          <input id="repo-qty" class="input" type="number" placeholder="Quantidade em estoque" />
         </div>
         <div class="form-group">
           <label for="repo-date">Data (dd/mm/aaaa)</label>
           <input id="repo-date" class="input" placeholder="dd/mm/aaaa" />
         </div>
         <div class="form-group">
-          <label for="repo-content">Conteúdo</label>
-          <textarea id="repo-content" class="textarea" rows="3" placeholder="Descrição, regras, notas..."></textarea>
+          <label for="repo-content">Observação / origem</label>
+          <textarea id="repo-content" class="textarea" rows="3" placeholder="Boss, origem, notas..."></textarea>
         </div>
       </div>
       <div class="modal-footer">
@@ -863,7 +913,7 @@
   </div>
 
   <script>
-    // --------- DATA HELPERS (dd/mm/aaaa) ----------
+    // --------- DATA HELPERS ----------
     function toISOFromBR(brDate) {
       const [d, m, y] = (brDate || '').split('/');
       if (!d || !m || !y) return '';
@@ -985,6 +1035,41 @@
       });
       */
       alert('Simulação de envio para o Discord:\n\n' + msg + '\n\nWebhook: ' + webhookUrl);
+    }
+
+    // --------- TEMA CLARO/ESCURO ----------
+    const THEME_KEY = 'murders-theme';
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      const icon = document.getElementById('theme-toggle-icon');
+      const text = document.getElementById('theme-toggle-text');
+      if (theme === 'dark') {
+        icon.textContent = '🌞';
+        text.textContent = 'Modo claro';
+      } else {
+        icon.textContent = '🌙';
+        text.textContent = 'Modo escuro';
+      }
+    }
+
+    function initTheme() {
+      const stored = localStorage.getItem(THEME_KEY);
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = stored || (prefersDark ? 'dark' : 'light');
+      applyTheme(theme);
+      localStorage.setItem(THEME_KEY, theme);
+    }
+
+    function setupThemeToggle() {
+      const btn = document.getElementById('theme-toggle');
+      if (!btn) return;
+      btn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme') || 'light';
+        const next = current === 'light' ? 'dark' : 'light';
+        applyTheme(next);
+        localStorage.setItem(THEME_KEY, next);
+      });
     }
 
     // --------- MODAL HELPERS ----------
@@ -1144,42 +1229,93 @@
       renderEvents();
     }
 
+    // resumo por nick + data
     function renderEvents() {
       const body = document.getElementById('events-body');
       body.innerHTML = '';
+
       const filterEvent = document.getElementById('filterEvent').value;
       const filterStatus = document.getElementById('filterStatus').value;
+
       let list = [...state.events[state.clan]];
 
-      if (filterEvent) list = list.filter(e => e.evento === filterEvent);
-      if (filterStatus) list = list.filter(e => e.status === filterStatus);
+      if (filterEvent) {
+        list = list.filter(e => e.evento === filterEvent);
+      }
+      if (filterStatus) {
+        list = list.filter(e => e.status === filterStatus);
+      }
 
-      list.sort((a, b) => {
-        const ev = a.evento.localeCompare(b.evento, 'pt-BR');
-        if (ev !== 0) return ev;
-        return a.nick.localeCompare(b.nick, 'pt-BR');
+      const grouped = {};
+      list.forEach(e => {
+        const key = `${e.nick}|||${e.data}`;
+        if (!grouped[key]) {
+          grouped[key] = {
+            nick: e.nick,
+            data: e.data,
+            presentes: [],
+            faltas: [],
+            justificadas: []
+          };
+        }
+        if (e.status === 'Presente') {
+          grouped[key].presentes.push(e.evento);
+        } else if (e.status === 'Faltou') {
+          grouped[key].faltas.push(e.evento);
+        } else if (e.status === 'Justificou') {
+          grouped[key].justificadas.push(e.evento);
+        }
       });
 
-      list.forEach((e, idx) => {
-        let tagClass = 'tag-success';
-        if (e.status === 'Faltou') tagClass = 'tag-danger';
-        if (e.status === 'Justificou') tagClass = 'tag-warning';
+      let rows = Object.values(grouped);
+      rows.sort((a, b) => {
+        const n = a.nick.localeCompare(b.nick, 'pt-BR');
+        if (n !== 0) return n;
+        return (a.data || '').localeCompare(b.data || '');
+      });
+
+      rows.forEach(group => {
+        const presentesStr = group.presentes.join(', ');
+        const faltasStr = group.faltas.join(', ');
+        const justStr = group.justificadas.join(', ');
+
+        let resumo = '';
+        if (presentesStr) resumo += `Foi aos eventos: ${presentesStr}. `;
+        if (faltasStr) resumo += `Faltou em: ${faltasStr}. `;
+        if (justStr) resumo += `Justificou em: ${justStr}.`;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${toBRFromISO(e.data)}</td>
-          <td>${e.evento}</td>
-          <td>${e.nick}</td>
-          <td><span class="tag ${tagClass}">${e.status}</span></td>
-          <td>${e.justificativa || ''}</td>
+          <td>${toBRFromISO(group.data)}</td>
+          <td>${resumo}</td>
+          <td>${group.nick}</td>
           <td>
             <div class="table-actions">
-              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="openEventModal(${idx})">Editar</button>
-              <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="deleteEvent(${idx})">Excluir</button>
+              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;"
+                onclick="editEventsByGroup('${group.nick.replace(/'/g, "\\'")}', '${group.data}')">
+                Ver / editar
+              </button>
             </div>
           </td>
         `;
         body.appendChild(tr);
       });
+
+      if (rows.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="4">Nenhuma presença registrada com esses filtros.</td>`;
+        body.appendChild(tr);
+      }
+    }
+
+    function editEventsByGroup(nick, isoDate) {
+      const list = state.events[state.clan];
+      const idx = list.findIndex(e => e.nick === nick && e.data === isoDate);
+      if (idx === -1) {
+        alert('Não foi possível localizar o registro para edição.');
+        return;
+      }
+      openEventModal(idx);
     }
 
     // --------- ENTREGAS ----------
@@ -1305,15 +1441,17 @@
     // --------- REPOSITÓRIO ----------
     function openRepoModal(index = null) {
       document.getElementById('repo-index').value = index !== null ? index : '';
-      document.getElementById('repo-modal-title').textContent = index !== null ? 'Editar entrada' : 'Nova entrada';
+      document.getElementById('repo-modal-title').textContent = index !== null ? 'Editar item' : 'Novo item';
       if (index !== null) {
         const r = state.repo[state.clan][index];
         if (!r) return;
         document.getElementById('repo-title').value = r.titulo;
+        document.getElementById('repo-qty').value = r.quantidade != null ? r.quantidade : '';
         document.getElementById('repo-date').value = toBRFromISO(r.data) || todayBR();
         document.getElementById('repo-content').value = r.conteudo || '';
       } else {
         document.getElementById('repo-title').value = '';
+        document.getElementById('repo-qty').value = '';
         document.getElementById('repo-date').value = todayBR();
         document.getElementById('repo-content').value = '';
       }
@@ -1327,14 +1465,16 @@
     function saveRepo() {
       const idxStr = document.getElementById('repo-index').value;
       const titulo = document.getElementById('repo-title').value.trim();
+      const qtdStr = document.getElementById('repo-qty').value.trim();
       const dataBR = document.getElementById('repo-date').value.trim() || todayBR();
       const conteudo = document.getElementById('repo-content').value.trim();
       if (!titulo) {
-        alert('Título é obrigatório.');
+        alert('Item é obrigatório.');
         return;
       }
+      const quantidade = qtdStr === '' ? '' : Number(qtdStr);
       const dataISO = toISOFromBR(dataBR);
-      const record = { titulo, data: dataISO, conteudo };
+      const record = { titulo, quantidade, data: dataISO, conteudo };
       const list = state.repo[state.clan];
 
       if (idxStr !== '') {
@@ -1363,7 +1503,7 @@
       const all = state.repo[state.clan]
         .slice()
         .sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'))
-        .map(r => `• ${r.titulo} (${toBRFromISO(r.data)}) - ${r.conteudo}`)
+        .map(r => `• ${r.quantidade != null && r.quantidade !== '' ? r.quantidade : '-'} - ${r.titulo} (${toBRFromISO(r.data)}) - ${r.conteudo}`)
         .join('\n');
       state.clipboardRepo = all;
       saveState();
@@ -1382,15 +1522,17 @@
     function renderRepo() {
       const body = document.getElementById('repo-body');
       body.innerHTML = '';
+
       let list = [...state.repo[state.clan]];
       list.sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'));
 
       list.forEach((r, idx) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
+          <td>${r.quantidade != null && r.quantidade !== '' ? r.quantidade : '-'}</td>
           <td>${r.titulo}</td>
           <td>${toBRFromISO(r.data)}</td>
-          <td>${r.conteudo}</td>
+          <td>${r.conteudo || ''}</td>
           <td>
             <div class="table-actions">
               <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="editRepo(${idx})">Editar</button>
@@ -1400,6 +1542,12 @@
         `;
         body.appendChild(tr);
       });
+
+      if (list.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="5">Nenhuma entrada no repositório.</td>`;
+        body.appendChild(tr);
+      }
     }
 
     // --------- PDF ----------
@@ -1424,7 +1572,7 @@
 
     function importPdfPlaceholder(event) {
       if (event.target.files && event.target.files[0]) {
-        alert('Importar PDF aqui é só visual; importação real exigiria backend/leitura avançada.');
+        alert('Importar PDF aqui é só visual; importação real exigiria backend/leitura de PDF.');
       }
     }
 
@@ -1450,6 +1598,8 @@
 
     // Init
     loadState();
+    initTheme();
+    setupThemeToggle();
     updateDate();
     renderAll();
   </script>
