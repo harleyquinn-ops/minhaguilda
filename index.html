@@ -367,32 +367,6 @@
       background: var(--card-bg);
     }
 
-    .tag {
-      display: inline-flex;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      border: 1px solid var(--table-border);
-    }
-
-    .tag-success {
-      border-color: rgba(34, 197, 94, 0.7);
-      color: #166534;
-      background: #bbf7d0;
-    }
-
-    .tag-danger {
-      border-color: rgba(239, 68, 68, 0.7);
-      color: #7f1d1d;
-      background: #fecaca;
-    }
-
-    .tag-warning {
-      border-color: rgba(234, 179, 8, 0.7);
-      color: #92400e;
-      background: #fef3c7;
-    }
-
     .table-actions {
       display: flex;
       gap: 6px;
@@ -547,7 +521,7 @@
     </div>
 
     <div class="sidebar-footer">
-      Tudo salvo no navegador por clã; inspirado no seu painel antigo, mas com layout novo. [file:16]
+      Tudo salvo no navegador por clã; layout novo com lógica do painel antigo. [file:16]
     </div>
   </aside>
 
@@ -741,39 +715,72 @@
       </div>
     </section>
 
-    <!-- ABA: REPOSITÓRIO -->
+    <!-- ABA: REPOSITÓRIO (IGUAL INDEX-2) -->
     <section class="card" id="tab-repo" style="display:none">
       <div class="card-header">
         <div>
-          <div class="card-title">Repositório do clã</div>
-          <div class="card-sub">Estoque, em ordem alfabética, com quantidade na frente.</div>
+          <div class="card-title">Itens do repositório</div>
+          <div class="card-sub">Se usar o mesmo nome de item, ele só atualiza a quantidade.</div>
         </div>
       </div>
 
-      <div class="actions-row">
-        <button class="btn btn-primary" onclick="openRepoModal()">+ Novo item</button>
-        <button class="btn btn-secondary" onclick="copyRepo()">Copiar</button>
-        <button class="btn btn-secondary" onclick="pasteRepo()">Colar</button>
-        <button class="btn btn-secondary" onclick="exportRepoToPDF()">Exportar PDF</button>
-        <label class="btn btn-secondary">
-          Importar PDF
-          <input type="file" accept="application/pdf" style="display:none" onchange="importPdfPlaceholder(event)">
-        </label>
-        <button class="btn btn-secondary" onclick="sendToDiscord('repositorio')">Enviar para o Discord</button>
+      <div class="card" style="margin-bottom:10px;">
+        <div class="card-header">
+          <div class="card-title" style="font-size:16px;">Cadastro / edição de itens</div>
+        </div>
+        <div class="modal-body" style="padding-top:0;">
+          <div class="form-group">
+            <label for="repoItem">Item</label>
+            <input id="repoItem" class="input" placeholder="Nome do item" />
+          </div>
+          <div class="form-group">
+            <label for="repoType">Tipo</label>
+            <input id="repoType" class="input" placeholder="Tipo (matéria-prima, equipamento, etc.)" />
+          </div>
+          <div class="form-group">
+            <label for="repoBoss">Boss que dropa</label>
+            <input id="repoBoss" class="input" placeholder="Nome do boss" />
+          </div>
+          <div class="form-group">
+            <label for="repoQuantity">Qtd em estoque</label>
+            <input id="repoQuantity" class="input" type="number" placeholder="Quantidade atual" />
+          </div>
+          <div class="actions-row" style="margin-top:8px;">
+            <button class="btn btn-primary" onclick="addRepoItem()">Salvar item</button>
+            <button class="btn btn-danger" onclick="clearRepo()">Limpar repositório</button>
+          </div>
+        </div>
       </div>
 
-      <div class="table-wrapper">
-        <table id="repo-table">
+      <div class="card" style="margin-top:6px;">
+        <div class="card-header">
+          <div class="card-title" style="font-size:16px;">Importar itens do jogo</div>
+          <div class="card-sub">Cole aqui o texto copiado do repositório do jogo (cada linha: item, quantidade, boss e data).</div>
+        </div>
+        <div class="modal-body" style="padding-top:0;">
+          <div class="form-group">
+            <label for="repoImportText">Itens copiados do jogo</label>
+            <textarea id="repoImportText" class="textarea" rows="5"
+              placeholder="Cole aqui o texto igual vem do jogo.&#10;Ex:&#10;Baú de Esboço da Batalha de Servidores    5    Batalha de Servidores    2026.02.03 20:18:27 UTC-3"></textarea>
+          </div>
+          <div class="actions-row" style="margin-top:8px;">
+            <button class="btn btn-primary" onclick="importRepoFromText()">Importar itens</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrapper" style="margin-top:10px;">
+        <table id="repoTable">
           <thead>
             <tr>
-              <th>Qtd</th>
               <th>Item</th>
-              <th>Data</th>
-              <th>Observação</th>
-              <th>Ações</th>
+              <th>Tipo</th>
+              <th>Boss que dropa</th>
+              <th>Qtd em estoque</th>
+              <th class="text-right">Ações</th>
             </tr>
           </thead>
-          <tbody id="repo-body"></tbody>
+          <tbody id="repoTableBody"></tbody>
         </table>
       </div>
     </section>
@@ -822,7 +829,7 @@
     </section>
   </main>
 
-  <!-- MODAIS (iguais à versão anterior) -->
+  <!-- MODAIS -->
   <!-- MEMBROS -->
   <div class="modal-overlay" id="member-modal">
     <div class="modal" style="max-width:520px;">
@@ -952,39 +959,6 @@
     </div>
   </div>
 
-  <!-- REPOSITÓRIO -->
-  <div class="modal-overlay" id="repo-modal">
-    <div class="modal" style="max-width:520px;">
-      <div class="modal-header">
-        <div class="modal-title" id="repo-modal-title">Novo item</div>
-        <button class="btn btn-secondary" onclick="closeRepoModal()">Fechar</button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="repo-index" />
-        <div class="form-group">
-          <label for="repo-title">Item</label>
-          <input id="repo-title" class="input" placeholder="Nome do item" />
-        </div>
-        <div class="form-group">
-          <label for="repo-qty">Quantidade</label>
-          <input id="repo-qty" class="input" type="number" placeholder="Quantidade em estoque" />
-        </div>
-        <div class="form-group">
-          <label for="repo-date">Data (dd/mm/aaaa)</label>
-          <input id="repo-date" class="input" placeholder="dd/mm/aaaa" />
-        </div>
-        <div class="form-group">
-          <label for="repo-content">Observação / origem</label>
-          <textarea id="repo-content" class="textarea" rows="3" placeholder="Boss, origem, notas..."></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeRepoModal()">Cancelar</button>
-        <button class="btn btn-primary" onclick="saveRepo()">Salvar</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     // --------- DATA HELPERS ----------
     function toISOFromBR(brDate) {
@@ -1008,7 +982,6 @@
       return `${d}/${m}/${y}`;
     }
 
-    // ---------- SEMANAS ----------
     function parseISO(iso) {
       if (!iso) return null;
       const [y,m,d] = iso.split('-').map(n=>parseInt(n,10));
@@ -1043,15 +1016,14 @@
     }
 
     // --------- STATE & LOCALSTORAGE ----------
-    const STORAGE_KEY = 'murders-dashboard-v3';
+    const STORAGE_KEY = 'murders-dashboard-v4';
     let state = {
       clan: 1,
       webhookUrl: '',
       members: { 1: [], 2: [] },
       events: { 1: [], 2: [] },
       deliveries: { 1: [], 2: [] },
-      repo: { 1: [], 2: [] },
-      clipboardRepo: ''
+      repoItems: { 1: [], 2: [] },
     };
 
     function loadState() {
@@ -1477,110 +1449,143 @@
       });
     }
 
-    // --------- REPOSITÓRIO (copiando ideia do index-2: estoque) ----------
-    function openRepoModal(index = null) {
-      document.getElementById('repo-index').value = index !== null ? index : '';
-      document.getElementById('repo-modal-title').textContent = index !== null ? 'Editar item' : 'Novo item';
-      if (index !== null) {
-        const r = state.repo[state.clan][index];
-        if (!r) return;
-        document.getElementById('repo-title').value = r.titulo;
-        document.getElementById('repo-qty').value = r.quantidade != null ? r.quantidade : '';
-        document.getElementById('repo-date').value = toBRFromISO(r.data) || todayBR();
-        document.getElementById('repo-content').value = r.conteudo || '';
-      } else {
-        document.getElementById('repo-title').value = '';
-        document.getElementById('repo-qty').value = '';
-        document.getElementById('repo-date').value = todayBR();
-        document.getElementById('repo-content').value = '';
-      }
-      openModal('repo-modal');
-    }
+    // --------- REPOSITÓRIO (MODELO INDEX-2) ----------
+    function renderRepo() {
+      const tbody = document.getElementById('repoTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
 
-    function closeRepoModal() { closeModal('repo-modal'); }
+      const list = state.repoItems[state.clan] || [];
 
-    function saveRepo() {
-      const idxStr=document.getElementById('repo-index').value;
-      const titulo=document.getElementById('repo-title').value.trim();
-      const qtdStr=document.getElementById('repo-qty').value.trim();
-      const dataBR=document.getElementById('repo-date').value.trim()||todayBR();
-      const conteudo=document.getElementById('repo-content').value.trim();
-      if(!titulo){alert('Item é obrigatório.');return;}
-      const quantidade=qtdStr===''?'':Number(qtdStr);
-      const dataISO=toISOFromBR(dataBR);
-      const record={titulo,quantidade,data:dataISO,conteudo};
-      const list=state.repo[state.clan];
-      if(idxStr!==''){
-        const idx=parseInt(idxStr,10);
-        if(!Number.isNaN(idx)&&list[idx]) list[idx]=record;
-      }else{
-        list.push(record);
-      }
-      saveState();
-      closeRepoModal();
-      renderRepo();
-    }
-
-    function editRepo(index){openRepoModal(index);}
-
-    function deleteRepo(index){
-      if(!confirm('Excluir esta entrada do repositório?'))return;
-      state.repo[state.clan].splice(index,1);
-      saveState();
-      renderRepo();
-    }
-
-    function copyRepo(){
-      const all=state.repo[state.clan]
-        .slice()
-        .sort((a,b)=>a.titulo.localeCompare(b.titulo,'pt-BR'))
-        .map(r=>`• ${r.quantidade != null && r.quantidade !== '' ? r.quantidade : '-'} - ${r.titulo} (${toBRFromISO(r.data)}) - ${r.conteudo}`)
-        .join('\n');
-      state.clipboardRepo=all;
-      saveState();
-      navigator.clipboard.writeText(all).catch(()=>{});
-      alert('Repositório copiado para a área de transferência (quando permitido).');
-    }
-
-    function pasteRepo(){
-      if(!state.clipboardRepo){alert('Nada copiado internamente ainda.');return;}
-      alert('Conteúdo copiado internamente:\n\n'+state.clipboardRepo);
-    }
-
-    function renderRepo(){
-      const body=document.getElementById('repo-body');
-      body.innerHTML='';
-      let list=[...state.repo[state.clan]];
-      list.sort((a,b)=>a.titulo.localeCompare(b.titulo,'pt-BR'));
-      list.forEach((r,idx)=>{
-        const tr=document.createElement('tr');
-        tr.innerHTML=`
-          <td>${r.quantidade != null && r.quantidade !== '' ? r.quantidade : '-'}</td>
-          <td>${r.titulo}</td>
-          <td>${toBRFromISO(r.data)}</td>
-          <td>${r.conteudo || ''}</td>
-          <td>
-            <div class="table-actions">
-              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="editRepo(${idx})">Editar</button>
-              <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="deleteRepo(${idx})">Excluir</button>
-            </div>
-          </td>`;
-        body.appendChild(tr);
+      list.forEach((r, index) => {
+        const tr = document.createElement('tr');
+        tr.dataset.index = index;
+        tr.innerHTML = `
+          <td>${r.item}</td>
+          <td>${r.tipo || ''}</td>
+          <td>${r.boss || ''}</td>
+          <td>${r.qtd != null ? r.qtd : ''}</td>
+          <td class="text-right">
+            <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;"
+              onclick="deleteRepoItem(${index})">
+              Excluir
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
       });
-      if(list.length===0){
-        const tr=document.createElement('tr');
-        tr.innerHTML='<td colspan="5">Nenhuma entrada no repositório.</td>';
-        body.appendChild(tr);
+
+      if (!list.length) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="5">Nenhum item no repositório.</td>`;
+        tbody.appendChild(tr);
       }
     }
 
-    // --------- RELATÓRIOS SEMANAIS (inspirado no index-2) ----------
+    function addRepoItem() {
+      const itemNome = document.getElementById('repoItem').value.trim();
+      const tipo = document.getElementById('repoType').value.trim();
+      const boss = document.getElementById('repoBoss').value.trim();
+      const qtdStr = document.getElementById('repoQuantity').value.trim();
+
+      if (!itemNome) {
+        alert('Informe o nome do item.');
+        return;
+      }
+
+      const qtdNum = qtdStr === '' ? 0 : parseInt(qtdStr, 10);
+      const list = state.repoItems[state.clan] || (state.repoItems[state.clan] = []);
+
+      const idx = list.findIndex(r => r.item.toLowerCase() === itemNome.toLowerCase());
+      if (idx >= 0) {
+        list[idx].tipo = tipo;
+        list[idx].boss = boss;
+        list[idx].qtd = qtdNum;
+      } else {
+        list.push({ item: itemNome, tipo, boss, qtd: qtdNum });
+      }
+
+      document.getElementById('repoItem').value = '';
+      document.getElementById('repoType').value = '';
+      document.getElementById('repoBoss').value = '';
+      document.getElementById('repoQuantity').value = '';
+
+      saveState();
+      renderRepo();
+    }
+
+    function clearRepo() {
+      if (!confirm('Tem certeza que quer limpar todo o repositório deste clã?')) return;
+      state.repoItems[state.clan] = [];
+      saveState();
+      renderRepo();
+    }
+
+    function importRepoFromText() {
+      const rawText = document.getElementById('repoImportText').value;
+      if (!rawText) {
+        alert('Cole o texto do jogo primeiro.');
+        return;
+      }
+
+      const linhas = rawText
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+
+      const list = state.repoItems[state.clan] || (state.repoItems[state.clan] = []);
+
+      linhas.forEach(linha => {
+        let partes = linha.split('\t').map(p => p.trim()).filter(p => p.length > 0);
+        if (partes.length <= 1) {
+          partes = linha
+            .split(/\s{2,}/)
+            .map(p => p.trim())
+            .filter(p => p.length > 0);
+        }
+        if (partes.length < 2) return;
+
+        const itemNome = partes[0];
+        const qtdStr = partes[1];
+        const origemBoss = partes[2] || '';
+        if (!itemNome) return;
+
+        const qtdNum = isFinite(qtdStr) ? parseInt(qtdStr, 10) : parseInt(qtdStr.replace(/\D/g, ''), 10) || 0;
+
+        const idx = list.findIndex(r => r.item.toLowerCase() === itemNome.toLowerCase());
+        if (idx >= 0) {
+          list[idx].boss = origemBoss || list[idx].boss;
+          list[idx].qtd = qtdNum;
+        } else {
+          list.push({
+            item: itemNome,
+            tipo: '',
+            boss: origemBoss,
+            qtd: qtdNum
+          });
+        }
+      });
+
+      saveState();
+      renderRepo();
+      alert('Importação de itens concluída.');
+    }
+
+    function deleteRepoItem(index) {
+      const list = state.repoItems[state.clan] || [];
+      if (!list[index]) return;
+      if (!confirm(`Remover o item "${list[index].item}" do repositório?`)) return;
+      list.splice(index, 1);
+      saveState();
+      renderRepo();
+    }
+
+    // --------- RELATÓRIOS SEMANAIS ----------
     function buildWeekSelectors(){
       const presenceSelect=document.getElementById('weekPresenceSelect');
       const deliveriesSelect=document.getElementById('weekDeliveriesSelect');
       if(!presenceSelect||!deliveriesSelect)return;
 
-      // PRESENÇA
       const events=state.events[state.clan];
       const presMap={};
       events.forEach(e=>{
@@ -1603,7 +1608,6 @@
         presenceSelect.appendChild(opt);
       });
 
-      // ENTREGAS
       const delivs=state.deliveries[state.clan];
       const delMap={};
       delivs.forEach(d=>{
@@ -1817,15 +1821,6 @@
       doc.save(nomeArquivoBase+'.pdf');
     }
 
-    function exportRepoToPDF(){
-      const {jsPDF}=window.jspdf;
-      const doc=new jsPDF();
-      const tableId='repo-table';
-      doc.text('REPOSITÓRIO DO CLÃ',14,12);
-      doc.autoTable({html:'#'+tableId,startY:16});
-      doc.save('repositorio.pdf');
-    }
-
     function importPdfPlaceholder(event){
       if(event.target.files && event.target.files[0]){
         alert('Importar PDF aqui é só visual; importação real exigiria backend/leitura de PDF.');
@@ -1843,7 +1838,7 @@
     }
 
     // Fechar modais clicando fora
-    ['member-modal','event-modal','delivery-modal','repo-modal'].forEach(id=>{
+    ['member-modal','event-modal','delivery-modal'].forEach(id=>{
       const el=document.getElementById(id);
       el.addEventListener('click',e=>{ if(e.target===el) el.style.display='none'; });
     });
