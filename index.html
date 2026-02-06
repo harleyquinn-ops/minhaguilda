@@ -76,6 +76,7 @@
       display: flex;
       flex-direction: column;
       gap: 24px;
+      min-height: 100vh;
       box-shadow: 4px 0 20px rgba(15, 23, 42, 0.35);
     }
 
@@ -164,23 +165,11 @@
       color: #ffffff;
     }
 
-    .nav-icon {
-      width: 20px;
-      height: 20px;
-      border-radius: 999px;
-      background: var(--azul-bebe);
-      color: var(--azul-escuro);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
     .sidebar-footer {
       margin-top: auto;
       font-size: 11px;
       color: var(--muted-text);
+      padding-bottom: 8px;
     }
 
     .main {
@@ -502,25 +491,25 @@
       <div class="nav-section-title">Navegação</div>
       <div class="nav">
         <button class="nav-btn active" data-tab="members" onclick="switchTab('members')">
-          <span><span class="nav-icon">M</span>Membros</span>
+          <span>👥 Membros</span>
         </button>
         <button class="nav-btn" data-tab="events" onclick="switchTab('events')">
-          <span><span class="nav-icon">E</span>Presença em eventos</span>
+          <span>📊 Presença</span>
         </button>
         <button class="nav-btn" data-tab="deliveries" onclick="switchTab('deliveries')">
-          <span><span class="nav-icon">D</span>Entregas</span>
+          <span>📦 Entregas</span>
         </button>
         <button class="nav-btn" data-tab="repo" onclick="switchTab('repo')">
-          <span><span class="nav-icon">R</span>Repositório</span>
+          <span>📂 Repositório</span>
         </button>
         <button class="nav-btn" data-tab="reports" onclick="switchTab('reports')">
-          <span><span class="nav-icon">S</span>Relatórios semanais</span>
+          <span>🗓️ Relatórios semanais</span>
         </button>
       </div>
     </div>
 
     <div class="sidebar-footer">
-      Tudo salvo no navegador por clã; layout novo com lógica do painel antigo.
+      ✓ Dados salvos no navegador
     </div>
   </aside>
 
@@ -1070,7 +1059,6 @@
       deliveries: { 1: [], 2: [] },
       repoItems: { 1: [], 2: [] },
     };
-
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -1572,7 +1560,7 @@
       });
       if (!list.length) {
         const tr=document.createElement('tr');
-        tr.innerHTML='<td colspan="5">Nenhuma entrega registrada.</td>';
+        tr.innerHTML='<td colspan="5">Nenhuma entrega registrado.</td>';
         body.appendChild(tr);
       }
       buildWeekSelectors();
@@ -1632,6 +1620,333 @@
         event.target.value = '';
       }
     }
+
+    function showMonthlyReport() {
+      document.getElementById('monthly-report-card').style.display='block';
+      if (!document.getElementById('reportMonth').value) {
+        const now=new Date();
+        const ym=now.toISOString().slice(0,7);
+        document.getElementById('reportMonth').value=ym;
+      }
+      renderMonthlyReport();
+    }
+    function renderMonthlyReport() {
+      const monthInput=document.getElementById('reportMonth').value;
+      const body=document.getElementById('monthly-report-body');
+      if (!body) return;
+      body.innerHTML='';
+      if (!monthInput) return;
+      const [year,month]=monthInput.split('-');
+      const list=(state.deliveries[state.clan] || []).filter(d=>d.data && d.data.startsWith(year+'-'+month));
+      const byNick={};
+      list.forEach(d=>{
+        if(!byNick[d.nick]) byNick[d.nick]=[];
+        byNick[d.nick].push(d.descricao||'(sem descrição)');
+      });
+      const nicks=Object.keys(byNick).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+      nicks.forEach(nick=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${nick}</td><td>${byNick[nick].join(' • ')}</td>`;
+        body.appendChild(tr);
+      });
+      if (!nicks.length) {
+        const tr=document.createElement('tr');
+        tr.innerHTML='<td colspan="2">Nenhuma entrega neste mês.</td>';
+        body.appendChild(tr);
+      }
+    }
+
+    // ---- REPOSITÓRIO ----
+    function renderRepo() {
+      const tbody = document.getElementById('repoTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      const search = (document.getElementById('searchRepoItem')?.value || '').toLowerCase();
+      let list = state.repoItems[state.clan] || [];
+      if (search) {
+        list = list.filter(r =>
+          (r.item || '').toLowerCase().includes(search) ||
+          (r.tipo || '').toLowerCase().includes(search) ||
+          (r.boss || '').toLowerCase().includes(search)
+        );
+      }
+      list.forEach((r, index) => {
+        const tr = document.createElement('tr');
+        tr.dataset.index = index;
+        tr.innerHTML = `
+          <td>${r.item}</td>
+          <td>${r.tipo || ''}</td>
+          <td>${r.boss || ''}</td>
+          <td>${r.qtd != null ? r.qtd : ''}</td>
+          <td class="text-right">
+            <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;"
+              onclick="deleteRepoItem(${index})">
+              Excluir
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      if (!list.length) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="5">Nenhum item no repositório.</td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function addRepoItem() {
+      const itemNome = document.getElementById('repoItem').value.trim();
+      const tipo = document.getElementById('repoType').value.trim();
+      const boss = document.getElementById('repoBoss').value.trim();
+      const qtdStr = document.getElementById('repoQuantity').value.trim();
+      if (!itemNome) { alert('Informe o nome do item.'); return; }
+      const qtdNum = qtdStr === '' ? 0 : parseInt(qtdStr, 10);
+      const list = state.repoItems[state.clan] || (state.repoItems[state.clan] = []);
+
+      const idx = list.findIndex(r => r.item.toLowerCase() === itemNome.toLowerCase());
+      if (idx >= 0) {
+        list[idx].tipo = tipo;
+        list[idx].boss = boss;
+        list[idx].qtd = qtdNum;
+      } else {
+        list.push({ item: itemNome, tipo, boss, qtd: qtdNum });
+      }
+
+      document.getElementById('repoItem').value = '';
+      document.getElementById('repoType').value = '';
+      document.getElementById('repoBoss').value = '';
+      document.getElementById('repoQuantity').value = '';
+
+      saveState();
+      renderRepo();
+    }
+
+    function clearRepo() {
+      if (!confirm('Tem certeza que quer limpar todo o repositório deste clã?')) return;
+      state.repoItems[state.clan] = [];
+      saveState();
+      renderRepo();
+    }
+
+    function importRepoFromText() {
+      const rawText = document.getElementById('repoImportText').value;
+      if (!rawText) {
+        alert('Cole o texto do jogo primeiro.');
+        return;
+      }
+      const linhas = rawText
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+
+      const list = state.repoItems[state.clan] || (state.repoItems[state.clan] = []);
+
+      linhas.forEach(linha => {
+        let partes = linha.split('\t').map(p => p.trim()).filter(p => p.length > 0);
+        if (partes.length <= 1) {
+          partes = linha
+            .split(/\s{2,}/)
+            .map(p => p.trim())
+            .filter(p => p.length > 0);
+        }
+        if (partes.length < 2) return;
+
+        const itemNome = partes[0];
+        const qtdStr = partes[1];
+        const origemBoss = partes[2] || '';
+        if (!itemNome) return;
+
+        const qtdNum = isFinite(qtdStr) ? parseInt(qtdStr, 10) : parseInt(qtdStr.replace(/\D/g, ''), 10) || 0;
+
+        const idx = list.findIndex(r => r.item.toLowerCase() === itemNome.toLowerCase());
+        if (idx >= 0) {
+          list[idx].boss = origemBoss || list[idx].boss;
+          list[idx].qtd = qtdNum;
+        } else {
+          list.push({
+            item: itemNome,
+            tipo: '',
+            boss: origemBoss,
+            qtd: qtdNum
+          });
+        }
+      });
+
+      saveState();
+      renderRepo();
+      alert('Importação de itens (texto) concluída.');
+    }
+
+    async function importRepoFromPDF(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const text = await extractTextFromPDF(file);
+        const linhas = text.split('\n')
+          .map(l => l.trim())
+          .filter(l => l.length > 0);
+
+        const list = state.repoItems[state.clan] || (state.repoItems[state.clan] = []);
+
+        linhas.forEach(linha => {
+          const partes = linha.split(/\s{2,}/).map(p => p.trim()).filter(Boolean);
+          if (partes.length < 4) return;
+          const [itemNome, tipo, boss, qtdStr] = partes;
+          if (!itemNome || itemNome.toLowerCase()==='item') return;
+          const qtdNum = parseInt(qtdStr.replace(/\D/g,''), 10) || 0;
+          const idx = list.findIndex(r => r.item.toLowerCase() === itemNome.toLowerCase());
+          if (idx >= 0) {
+            list[idx].tipo = tipo;
+            list[idx].boss = boss;
+            list[idx].qtd = qtdNum;
+          } else {
+            list.push({ item: itemNome, tipo, boss, qtd: qtdNum });
+          }
+        });
+
+        saveState();
+        renderRepo();
+        alert('Importação de repositório via PDF concluída.');
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao ler o PDF do repositório.');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    async function importRepoFromJSON(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!Array.isArray(data)) {
+          alert('JSON inválido: esperado um array de itens.');
+          return;
+        }
+        state.repoItems[state.clan] = data.map(r => ({
+          item: String(r.item || '').trim(),
+          tipo: String(r.tipo || ''),
+          boss: String(r.boss || ''),
+          qtd: Number(r.qtd || 0)
+        }));
+        saveState();
+        renderRepo();
+        alert('Importação de repositório via JSON concluída.');
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao ler JSON do repositório.');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    function deleteRepoItem(index) {
+      const list = state.repoItems[state.clan] || [];
+      if (!list[index]) return;
+      if (!confirm(`Remover o item "${list[index].item}" do repositório?`)) return;
+      list.splice(index, 1);
+      saveState();
+      renderRepo();
+    }
+
+    // ---- RELATÓRIOS SEMANAIS ----
+    function buildWeekSelectors(){
+      const presenceSelect=document.getElementById('weekPresenceSelect');
+      const deliveriesSelect=document.getElementById('weekDeliveriesSelect');
+      if(!presenceSelect||!deliveriesSelect)return;
+
+      const events=state.events[state.clan] || [];
+      const presMap={};
+      events.forEach(e=>{
+        const d=parseISO(e.data);
+        if(!d)return;
+        const key=weekKeyFromDate(d);
+        if(!presMap[key]){
+          const range=getWeekRange(d);
+          presMap[key]={start:range.start,end:range.end};
+        }
+      });
+      const presWeeks=Object.keys(presMap)
+        .map(k=>({key:k,start:presMap[k].start,end:presMap[k].end}))
+        .sort((a,b)=>a.start-b.start);
+      presenceSelect.innerHTML='';
+      presWeeks.forEach(w=>{
+        const opt=document.createElement('option');
+        opt.value=w.key;
+        opt.textContent=`${w.key} (${formatDateBRFromDate(w.start)} - ${formatDateBRFromDate(w.end)})`;
+        presenceSelect.appendChild(opt);
+      });
+
+      const delivs=state.deliveries[state.clan] || [];
+      const delMap={};
+      delivs.forEach(d=>{
+        const dt=parseISO(d.data);
+        if(!dt)return;
+        const key=weekKeyFromDate(dt);
+        if(!delMap[key]){
+          const range=getWeekRange(dt);
+          delMap[key]={start:range.start,end:range.end};
+        }
+      });
+      const delWeeks=Object.keys(delMap)
+        .map(k=>({key:k,start:delMap[k].start,end:delMap[k].end}))
+        .sort((a,b)=>a.start-b.start);
+      deliveriesSelect.innerHTML='';
+      delWeeks.forEach(w=>{
+        const opt=document.createElement('option');
+        opt.value=w.key;
+        opt.textContent=`${w.key} (${formatDateBRFromDate(w.start)} - ${formatDateBRFromDate(w.end)})`;
+        deliveriesSelect.appendChild(opt);
+      });
+
+      if(presWeeks.length && !presenceSelect.value) presenceSelect.value=presWeeks[presWeeks.length-1].key;
+      if(delWeeks.length && !deliveriesSelect.value) deliveriesSelect.value=delWeeks[delWeeks.length-1].key;
+    }
+
+    function aggregateWeeklyPresence(weekKey){
+      const events=state.events[state.clan] || [];
+      const refDate=parseISO(weekKey);
+      if(!refDate)return {range:null, entries:[], text:''};
+      const range=getWeekRange(refDate);
+      const filtered=events.filter(e=>{
+        const d=parseISO(e.data);
+        if(!d)return false;
+        return d>=range.start && d<=range.end;
+      });
+      const members={};
+      filtered.forEach(e=>{
+        const nick=e.nick;
+        const d=parseISO(e.data);
+        if(!members[nick]) members[nick]={dates:{}};
+        const dKey=formatDateBRFromDate(d);
+        if(!members[nick].dates[dKey]) members[nick].dates[dKey]={presentes:[],faltas:[],justificadas:[]};
+        const bucket=members[nick].dates[dKey];
+        if(e.status==='Presente') bucket.presentes.push(e.evento);
+        else if(e.status==='Faltou') bucket.faltas.push(e.evento);
+        else if(e.status==='Justificou') bucket.justificadas.push(e.evento);
+      });
+      const entries=Object.keys(members).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(name=>{
+        const dates=Object.keys(members[name].dates).sort((a,b)=>{
+          const pa=a.split('/').reverse().join('-');
+          const pb=b.split('/').reverse().join('-');
+          return pa.localeCompare(pb);
+        }).map(ds=>{
+          const info=members[name].dates[ds];
+          return {dateStr:ds, presentes:info.presentes, faltas:info.faltas, justificadas:info.justificadas};
+        });
+        return {name,dates};
+      });
+      let text=`PRESENÇA DA SEMANA (${formatDateBRFromDate(range.start)} - ${formatDateBRFromDate(range.end)})\n\n`;
+      entries.forEach(m=>{
+        text+=`${m.name}\n`;
+        m.dates.forEach(d=>{
+          const pres=d.presentes.length?`Foi em: ${d.presentes.join(', ')}\n`:``;
+          const faltas=d.faltas.length?`Faltou em: ${d.faltas.join(', ')}\n`:``;
+          const just=d.justificadas.length?`Justificou em: ${d.justificadas.join(', ')}\n`:``;
+          text+=`${d.dateStr}\n${pres}${faltas}${just}\n`;
+        });    }
 
     function showMonthlyReport() {
       document.getElementById('monthly-report-card').style.display='block';
