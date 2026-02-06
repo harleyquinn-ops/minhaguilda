@@ -1,881 +1,143 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Murders 1 & 2 - Painel do Clã</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Fonte arredondada -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <!-- jsPDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
-  <!-- pdf.js para leitura de PDF no navegador -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.js"></script>
-  <script>
-    if (window['pdfjsLib']) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.js';
-    }
-  </script>
+  <meta charset="UTF-8">
+  <title>Murders - Painel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg-gradient: linear-gradient(135deg, #eff6ff, #dbeafe);
-      --sidebar-bg: #ffffff;
-      --sidebar-border: #bfdbfe;
-      --main-text: #111827;
-      --muted-text: #4b5563;
-      --azul-bebe: #bfdbfe;
-      --azul: #2563eb;
-      --azul-escuro: #1d4ed8;
-      --card-bg: #ffffff;
-      --card-border: #bfdbfe;
-      --table-border: #e5e7eb;
-      --table-alt: #f3f4f6;
-      --modal-bg: rgba(15, 23, 42, 0.5);
-      --danger: #ef4444;
-      --success: #22c55e;
-    }
-
-    html[data-theme="dark"] {
-      --bg-gradient: linear-gradient(135deg, #020617, #0f172a);
-      --sidebar-bg: #020617;
-      --sidebar-border: #1d4ed8;
-      --main-text: #e5e7eb;
-      --muted-text: #9ca3af;
-      --azul-bebe: #1d4ed8;
-      --azul: #3b82f6;
-      --azul-escuro: #60a5fa;
-      --card-bg: #020617;
-      --card-border: #1f2937;
-      --table-border: #111827;
-      --table-alt: #020617;
-      --modal-bg: rgba(15, 23, 42, 0.8);
-      --danger: #f87171;
-      --success: #22c55e;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-
-    body {
-      background: var(--bg-gradient);
-      color: var(--main-text);
-      min-height: 100vh;
-      display: flex;
-    }
-
-    .sidebar {
-      width: 260px;
-      background: var(--sidebar-bg);
-      border-right: 1px solid var(--sidebar-border);
-      padding: 24px 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      min-height: 100vh;
-      box-shadow: 4px 0 20px rgba(15, 23, 42, 0.35);
-    }
-
-    .brand {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .brand-title {
-      font-size: 22px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      color: var(--azul-escuro);
-    }
-
-    .brand-sub {
-      font-size: 13px;
-      color: var(--muted-text);
-    }
-
-    .clan-switch {
-      margin-top: 8px;
-      display: flex;
-      gap: 8px;
-    }
-
-    .clan-btn {
-      flex: 1;
-      padding: 6px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--azul-bebe);
-      background: var(--sidebar-bg);
-      color: var(--azul-escuro);
-      cursor: pointer;
-      font-size: 12px;
-    }
-
-    .clan-btn.active {
-      background: var(--azul-escuro);
-      color: #ffffff;
-    }
-
-    .nav-section-title {
-      font-size: 12px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--muted-text);
-      margin-bottom: 6px;
-    }
-
-    .nav {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .nav-btn {
-      width: 100%;
-      text-align: left;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      color: var(--muted-text);
-      background: transparent;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      transition: all 0.15s ease;
-    }
-
-    .nav-btn span {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .nav-btn:hover {
-      background: rgba(191, 219, 254, 0.2);
-    }
-
-    .nav-btn.active {
-      background: var(--azul-escuro);
-      color: #ffffff;
-    }
-
-    .sidebar-footer {
-      margin-top: auto;
-      font-size: 11px;
-      color: var(--muted-text);
-      padding-bottom: 8px;
-    }
-
-    .main {
-      flex: 1;
-      padding: 24px 26px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .topbar-title {
-      font-size: 20px;
-      font-weight: 500;
-      color: var(--azul-escuro);
-    }
-
-    .topbar-sub {
-      font-size: 13px;
-      color: var(--muted-text);
-    }
-
-    .date-badge {
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: var(--sidebar-bg);
-      border: 1px solid var(--sidebar-border);
-      font-size: 12px;
-      color: var(--muted-text);
-    }
-
-    .theme-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--sidebar-border);
-      background: var(--sidebar-bg);
-      cursor: pointer;
-      font-size: 11px;
-      color: var(--muted-text);
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: 18px;
-      padding: 18px 18px 16px;
-      border: 1px solid var(--card-border);
-      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
-      margin-bottom: 12px;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-    }
-
-    .card-title {
-      font-size: 18px;
-      font-weight: 500;
-      color: var(--azul-escuro);
-    }
-
-    .card-sub {
-      font-size: 13px;
-      color: var(--muted-text);
-    }
-
-    .actions-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .btn {
-      border-radius: 999px;
-      border: none;
-      padding: 6px 12px;
-      font-size: 12px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.15s ease;
-      white-space: nowrap;
-    }
-
-    .btn-primary {
-      background: var(--azul-escuro);
-      color: #ffffff;
-    }
-
-    .btn-secondary {
-      background: var(--sidebar-bg);
-      color: var(--muted-text);
-      border: 1px solid var(--sidebar-border);
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: #ffffff;
-    }
-
-    .btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.45);
-    }
-
-    .filters-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 12px;
-      align-items: center;
-    }
-
-    .input, .select, .textarea {
-      border-radius: 999px;
-      border: 1px solid var(--sidebar-border);
-      background: var(--sidebar-bg);
-      color: var(--main-text);
-      padding: 6px 12px;
-      font-size: 12px;
-      outline: none;
-    }
-
-    .textarea {
-      border-radius: 12px;
-      resize: vertical;
-    }
-
-    .input::placeholder {
-      color: var(--muted-text);
-    }
-
-    .select {
-      padding-right: 24px;
-    }
-
-    .table-wrapper {
-      border-radius: 14px;
-      border: 1px solid var(--sidebar-border);
-      overflow: hidden;
-      max-height: 420px;
-      overflow-y: auto;
-      background: var(--card-bg);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    thead {
-      background: var(--azul-bebe);
-    }
-
-    html[data-theme="dark"] thead {
-      background: #1e293b;
-    }
-
-    th, td {
-      padding: 8px 10px;
-      text-align: left;
-      border-bottom: 1px solid var(--table-border);
-      color: var(--main-text);
-    }
-
-    th {
-      font-weight: 500;
-    }
-
-    tbody tr:nth-child(even) {
-      background: var(--table-alt);
-    }
-
-    tbody tr:nth-child(odd) {
-      background: var(--card-bg);
-    }
-
-    .table-actions {
-      display: flex;
-      gap: 6px;
-    }
-
-    .webhook-box {
-      margin-top: 8px;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      font-size: 12px;
-      color: var(--muted-text);
-    }
-
-    .webhook-input {
-      flex: 1;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: var(--modal-bg);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 50;
-      padding: 16px;
-    }
-
-    .modal {
-      width: 100%;
-      max-width: 920px;
-      background: var(--card-bg);
-      border-radius: 14px;
-      padding: 16px 18px 14px;
-      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.55);
-      max-height: 90vh;
-      overflow: auto;
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      gap: 8px;
-    }
-
-    .modal-title {
-      font-size: 16px;
-      font-weight: 500;
-      color: var(--azul-escuro);
-    }
-
-    .modal-body {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .form-group label {
-      font-size: 11px;
-      color: var(--muted-text);
-    }
-
-    .modal-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-
-    .history-member {
-      border-bottom: 1px solid var(--table-border);
-      padding: 10px 0;
-    }
-
-    .history-member h4 {
-      margin: 0 0 6px 0;
-      font-size: 1rem;
-      color: var(--azul-escuro);
-    }
-
-    .history-dates {
-      margin: 6px 0 0 0;
-      padding-left: 14px;
-      font-size: 12px;
-      color: var(--muted-text);
-    }
-
-    .empty {
-      color: var(--muted-text);
-      padding: 12px 0;
-      font-size: 13px;
-    }
-
-    @media (max-width: 900px) {
-      body { flex-direction: column; }
-      .sidebar {
-        width: 100%;
-        flex-direction: row;
-        align-items: center;
-        gap: 16px;
-        overflow-x: auto;
-      }
-      .main { padding: 18px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Poppins, sans-serif; background: #f0f4f8; color: #333; display: flex; min-height: 100vh; }
+    
+    .sidebar { width: 250px; background: #2c3e50; color: white; padding: 20px; position: fixed; height: 100vh; overflow-y: auto; }
+    .sidebar h2 { margin-bottom: 30px; }
+    .clan-btn { width: 100%; padding: 10px; margin: 5px 0; border: none; background: #34495e; color: white; cursor: pointer; border-radius: 4px; font-family: Poppins, sans-serif; font-weight: 600; }
+    .clan-btn.active { background: #e74c3c; }
+    .clan-btn:hover { background: #2980b9; }
+    .sidebar hr { margin: 20px 0; border: none; border-top: 1px solid #555; }
+    .tab-btn { width: 100%; padding: 10px; margin: 5px 0; border: none; background: #34495e; color: white; cursor: pointer; border-radius: 4px; font-family: Poppins, sans-serif; text-align: left; }
+    .tab-btn.active { background: #3498db; font-weight: 600; }
+    .tab-btn:hover { background: #2980b9; }
+    
+    .main { margin-left: 250px; flex: 1; padding: 20px; overflow-y: auto; }
+    .header { background: white; padding: 20px; border-radius: 4px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .header h1 { font-size: 24px; color: #2c3e50; }
+    
+    .card { background: white; padding: 20px; border-radius: 4px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .card h3 { color: #2c3e50; margin-bottom: 8px; font-size: 16px; }
+    .card p { font-size: 12px; color: #7f8c8d; margin-bottom: 15px; }
+    
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+    .btn { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: Poppins, sans-serif; font-weight: 500; transition: all 0.2s; }
+    .btn-primary { background: #3498db; color: white; }
+    .btn-primary:hover { background: #2980b9; transform: translateY(-1px); }
+    .btn-danger { background: #e74c3c; color: white; }
+    .btn-danger:hover { background: #c0392b; }
+    .btn-secondary { background: #95a5a6; color: white; }
+    .btn-secondary:hover { background: #7f8c8d; }
+    
+    .input-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; align-items: flex-end; }
+    .input, select, textarea { padding: 8px 12px; border: 1px solid #bdc3c7; border-radius: 4px; font-family: Poppins, sans-serif; font-size: 12px; }
+    .input { flex: 1; min-width: 150px; }
+    select { flex: 0.5; min-width: 120px; }
+    textarea { width: 100%; min-height: 60px; resize: vertical; }
+    
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    table thead { background: #ecf0f1; position: sticky; top: 0; }
+    table th, table td { padding: 10px; text-align: left; border-bottom: 1px solid #bdc3c7; }
+    table th { font-weight: 600; }
+    table tbody tr:hover { background: #f8f9fa; }
+    table .actions { display: flex; gap: 4px; }
+    
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; padding: 25px; border-radius: 4px; width: 90%; max-width: 500px; max-height: 85vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-header h2 { font-size: 18px; color: #2c3e50; }
+    .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #7f8c8d; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 12px; margin-bottom: 4px; font-weight: 600; color: #2c3e50; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; font-family: Poppins, sans-serif; font-size: 12px; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+    
+    .tab { display: none; }
+    .tab.active { display: block; }
+    
+    .empty { text-align: center; color: #7f8c8d; padding: 20px; }
+    
+    .success { background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+    .error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+    
+    .checkbox-group { display: flex; gap: 8px; align-items: center; margin-bottom: 0; }
+    .checkbox-group input[type="checkbox"] { cursor: pointer; width: 16px; height: 16px; }
+    .checkbox-group label { margin-bottom: 0; cursor: pointer; }
+    
+    @media (max-width: 768px) {
+      .sidebar { width: 100%; height: auto; position: relative; }
+      .main { margin-left: 0; }
     }
   </style>
 </head>
 <body>
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-title">Murders</div>
-      <div class="brand-sub">Painel dos Clãs • 1 & 2</div>
-      <div class="clan-switch">
-        <button class="clan-btn active" data-clan="1" onclick="setClan(1)">Murders 1</button>
-        <button class="clan-btn" data-clan="2" onclick="setClan(2)">Murders 2</button>
-      </div>
-    </div>
+  <div class="sidebar">
+    <h2>⚔️ Murders</h2>
+    <button class="clan-btn active" onclick="setClan(1)" data-clan="1">Clan 1</button>
+    <button class="clan-btn" onclick="setClan(2)" data-clan="2">Clan 2</button>
+    <hr>
+    <button class="tab-btn active" onclick="switchTab('members')" data-tab="members">👥 Membros</button>
+    <button class="tab-btn" onclick="switchTab('events')" data-tab="events">📊 Presença</button>
+    <button class="tab-btn" onclick="switchTab('deliveries')" data-tab="deliveries">📦 Entregas</button>
+    <button class="tab-btn" onclick="switchTab('repo')" data-tab="repo">📂 Repositório</button>
+    <button class="tab-btn" onclick="switchTab('reports')" data-tab="reports">📈 Relatórios</button>
+  </div>
 
-    <div>
-      <div class="nav-section-title">Navegação</div>
-      <div class="nav">
-        <button class="nav-btn active" data-tab="members" onclick="switchTab('members')">
-          <span>👥 Membros</span>
-        </button>
-        <button class="nav-btn" data-tab="events" onclick="switchTab('events')">
-          <span>📊 Presença</span>
-        </button>
-        <button class="nav-btn" data-tab="deliveries" onclick="switchTab('deliveries')">
-          <span>📦 Entregas</span>
-        </button>
-        <button class="nav-btn" data-tab="repo" onclick="switchTab('repo')">
-          <span>📂 Repositório</span>
-        </button>
-        <button class="nav-btn" data-tab="reports" onclick="switchTab('reports')">
-          <span>🗓️ Relatórios semanais</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="sidebar-footer">
-      ✓ Dados salvos no navegador
-    </div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-    <header class="topbar">
+  <div class="main">
+    <div class="header">
       <div>
-        <div class="topbar-title" id="currentTabTitle">Membros</div>
-        <div class="topbar-sub">Controle de membros, presença, entregas, repositório e relatórios semanais.</div>
+        <h1 id="pageTitle">👥 Membros</h1>
+        <p style="color: #7f8c8d; font-size: 13px;" id="pageDesc">Controle de membros</p>
       </div>
-      <div style="display:flex; align-items:center; gap:10px;">
-        <button id="theme-toggle" class="theme-toggle">
-          <span id="theme-toggle-icon">🌙</span>
-          <span id="theme-toggle-text">Modo escuro</span>
-        </button>
-        <div class="date-badge" id="currentDate"></div>
-      </div>
-    </header>
+      <button class="btn btn-secondary" onclick="toggleTheme()">🌙 Tema</button>
+    </div>
 
-    <!-- CONFIG WEBHOOK -->
-    <section class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Webhook do Discord</div>
-          <div class="card-sub">Cole a URL do webhook que será usada em “Enviar para o Discord”.</div>
+    <!-- AÇÕES GLOBAIS: IMPORT/EXPORT -->
+    <div class="card" id="global-actions">
+      <h3>Importar / Exportar dados</h3>
+      <p>Use estes botões para salvar ou carregar todos os dados do painel.</p>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="importJSON()">Importar JSON</button>
+        <button class="btn btn-primary" onclick="exportJSON()">Exportar JSON</button>
+        <button class="btn btn-secondary" onclick="exportPDF()">Exportar PDF da aba atual</button>
+      </div>
+      <input type="file" id="json-file-input" accept=".json" style="display:none" onchange="handleJSONFile(event)">
+    </div>
+
+    <div id="msgContainer"></div>
+
+    <!-- WEBHOOK GLOBAL -->
+    <div class="card">
+      <h3>Webhook do Discord</h3>
+      <div class="input-row">
+        <input id="webhookUrl" class="input" placeholder="Cole a URL do webhook..." style="flex: 1;">
+        <button class="btn btn-primary" onclick="saveWebhook()">✅ Salvar</button>
+      </div>
+    </div>
+
+    <!-- ABA MEMBROS -->
+    <div class="tab active" id="tab-members">
+      <div class="card">
+        <h3>Membros do clã</h3>
+        <p>Nick, level, power e classe em ordem alfabética.</p>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="openMemberModal()">➕ Novo membro</button>
+          <button class="btn btn-danger" onclick="clearAllMembers()">🗑️ Apagar todos</button>
+          <button class="btn btn-secondary" onclick="sendToDiscord('membros')">💬 Discord</button>
         </div>
-      </div>
-      <div class="webhook-box">
-        <input id="webhookUrl" class="input webhook-input" placeholder="https://discord.com/api/webhooks/..." />
-        <button class="btn btn-secondary" onclick="saveWebhook()">Salvar</button>
-      </div>
-    </section>
-
-    <!-- MEMBROS -->
-    <section class="card" id="tab-members">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Membros do clã</div>
-          <div class="card-sub">Nick, level, power e classe em ordem alfabética.</div>
-        </div>
-      </div>
-      <div class="actions-row">
-        <button class="btn btn-primary" onclick="openMemberModal()">+ Adicionar membro</button>
-        <button class="btn btn-danger" onclick="clearAllMembers()">Apagar todos</button>
-        <button class="btn btn-secondary" onclick="exportTableToPDF('members-table','membros')">Exportar PDF</button>
-        <label class="btn btn-secondary">
-          Importar PDF
-          <input type="file" accept="application/pdf" style="display:none"
-                 onchange="importMembersFromPDF(event)">
-        </label>
-        <label class="btn btn-secondary">
-          Importar JSON
-          <input type="file" accept="application/json" style="display:none"
-                 onchange="importMembersFromJSON(event)">
-        </label>
-        <button class="btn btn-secondary" onclick="sendToDiscord('membros')">Enviar para o Discord</button>
-      </div>
-
-      <div class="filters-row">
-        <input class="input" id="searchMembers" placeholder="Buscar por nick..." oninput="renderMembers()" />
-        <select class="select" id="filterClass" onchange="renderMembers()">
-          <option value="">Todas as classes</option>
-          <option>Arqueira</option>
-          <option>Bardo</option>
-          <option>Berserker</option>
-          <option>Lanceiro</option>
-          <option>Maga</option>
-        </select>
-      </div>
-
-      <div class="table-wrapper">
-        <table id="members-table">
-          <thead>
-            <tr>
-              <th>Nick</th>
-              <th>Level</th>
-              <th>Power</th>
-              <th>Classe</th>
-              <th>Data</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="members-body"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- PRESENÇA -->
-    <section class="card" id="tab-events" style="display:none">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Presença em eventos</div>
-          <div class="card-sub">Resumo diário por nick com eventos presentes, faltas e justificativas.</div>
-        </div>
-      </div>
-
-      <div class="actions-row">
-        <button class="btn btn-primary" onclick="openEventModal()">+ Registrar presença</button>
-        <button class="btn btn-secondary" onclick="sendToDiscord('presencas')">Enviar para o Discord</button>
-      </div>
-
-      <div class="filters-row">
-        <select class="select" id="filterEvent" onchange="renderEvents()">
-          <option value="">Todos os eventos</option>
-          <option>Boss do clã</option>
-          <option>Copa Ymir</option>
-          <option>Guerra da coroa</option>
-          <option>Ilha de Sindri</option>
-          <option>Interserver</option>
-        </select>
-        <select class="select" id="filterStatus" onchange="renderEvents()">
-          <option value="">Todos status</option>
-          <option>Presente</option>
-          <option>Faltou</option>
-          <option>Justificou</option>
-        </select>
-      </div>
-
-      <div class="table-wrapper">
-        <table id="events-table">
-          <thead>
-            <tr>
-              <th>Nick</th>
-              <th>Resumo de eventos</th>
-              <th>Data</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="events-body"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ENTREGAS -->
-    <section class="card" id="tab-deliveries" style="display:none">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Entregas do clã</div>
-          <div class="card-sub">Controle semanal e relatório mensal do que cada membro recebeu.</div>
-        </div>
-      </div>
-
-      <div class="actions-row">
-        <button class="btn btn-primary" onclick="openDeliveryModal()">+ Registrar entrega</button>
-        <button class="btn btn-secondary" onclick="showMonthlyReport()">Relatório mensal</button>
-        <button class="btn btn-secondary" onclick="sendToDiscord('entregas')">Enviar para o Discord</button>
-        <label class="btn btn-secondary">
-          Importar PDF
-          <input type="file" accept="application/pdf" style="display:none"
-                 onchange="importDeliveriesFromPDF(event)">
-        </label>
-        <label class="btn btn-secondary">
-          Importar JSON
-          <input type="file" accept="application/json" style="display:none"
-                 onchange="importDeliveriesFromJSON(event)">
-        </label>
-      </div>
-
-      <div class="filters-row">
-        <input class="input" id="searchDeliveriesNick" placeholder="Buscar por nick..." oninput="renderDeliveries()" />
-        <input class="input" id="searchDeliveriesDesc" placeholder="Buscar pelo que recebeu..." oninput="renderDeliveries()" />
-        <select class="select" id="filterDeliveriesClass" onchange="renderDeliveries()">
-          <option value="">Todas as classes</option>
-          <option>Arqueira</option>
-          <option>Bardo</option>
-          <option>Berserker</option>
-          <option>Lanceiro</option>
-          <option>Maga</option>
-        </select>
-      </div>
-
-      <div class="table-wrapper">
-        <table id="deliveries-table">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Nick</th>
-              <th>Classe</th>
-              <th>Descrição da entrega</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="deliveries-body"></tbody>
-        </table>
-      </div>
-
-      <div class="card" id="monthly-report-card" style="margin-top:14px; display:none;">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Relatório mensal de entregas</div>
-            <div class="card-sub">Resumo do que cada membro recebeu no mês.</div>
-          </div>
-        </div>
-        <div class="filters-row">
-          <input type="month" class="input" id="reportMonth" onchange="renderMonthlyReport()" />
-        </div>
-        <div class="table-wrapper">
-          <table id="monthly-report-table">
-            <thead>
-              <tr>
-                <th>Nick</th>
-                <th>Resumo de entregas</th>
-              </tr>
-            </thead>
-            <tbody id="monthly-report-body"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- REPOSITÓRIO -->
-    <section class="card" id="tab-repo" style="display:none">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Itens do repositório</div>
-          <div class="card-sub">Se usar o mesmo nome de item, ele só atualiza a quantidade.</div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-bottom:10px;">
-        <div class="card-header">
-          <div class="card-title" style="font-size:16px;">Cadastro / edição de itens</div>
-        </div>
-        <div class="modal-body" style="padding-top:0;">
-          <div class="form-group">
-            <label for="repoItem">Item</label>
-            <input id="repoItem" class="input" placeholder="Nome do item" />
-          </div>
-          <div class="form-group">
-            <label for="repoType">Tipo</label>
-            <input id="repoType" class="input" placeholder="Tipo (matéria-prima, equipamento, etc.)" />
-          </div>
-          <div class="form-group">
-            <label for="repoBoss">Boss que dropa</label>
-            <input id="repoBoss" class="input" placeholder="Nome do boss" />
-          </div>
-          <div class="form-group">
-            <label for="repoQuantity">Qtd em estoque</label>
-            <input id="repoQuantity" class="input" type="number" placeholder="Quantidade atual" />
-          </div>
-          <div class="actions-row" style="margin-top:8px;">
-            <button class="btn btn-primary" onclick="addRepoItem()">Salvar item</button>
-            <button class="btn btn-danger" onclick="clearRepo()">
-              Limpar repositório
-            </button>
-            <label class="btn btn-secondary">
-              Importar PDF
-              <input type="file" accept="application/pdf" style="display:none"
-                     onchange="importRepoFromPDF(event)">
-            </label>
-            <label class="btn btn-secondary">
-              Importar JSON
-              <input type="file" accept="application/json" style="display:none"
-                     onchange="importRepoFromJSON(event)">
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:6px;">
-        <div class="card-header">
-          <div class="card-title" style="font-size:16px;">Importar itens do jogo (texto)</div>
-          <div class="card-sub">Cole aqui o texto copiado do repositório do jogo (cada linha: item, quantidade, boss e data).</div>
-        </div>
-        <div class="modal-body" style="padding-top:0;">
-          <div class="form-group">
-            <label for="repoImportText">Itens copiados do jogo</label>
-            <textarea id="repoImportText" class="textarea" rows="5"
-              placeholder="Cole aqui o texto igual vem do jogo.&#10;Ex:&#10;Baú de Esboço da Batalha de Servidores    5    Batalha de Servidores    2026.02.03 20:18:27 UTC-3"></textarea>
-          </div>
-          <div class="actions-row" style="margin-top:8px;">
-            <button class="btn btn-primary" onclick="importRepoFromText()">
-              Importar itens (texto)
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="filters-row" style="margin-top:10px;">
-        <input class="input" id="searchRepoItem" placeholder="Buscar item..." oninput="renderRepo()" />
-      </div>
-
-      <div class="table-wrapper" style="margin-top:10px;">
-        <table id="repoTable">
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>Tipo</th>
-              <th>Boss que dropa</th>
-              <th>Qtd em estoque</th>
-              <th class="text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody id="repoTableBody"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- RELATÓRIOS SEMANAIS -->
-    <section class="card" id="tab-reports" style="display:none">
-      <div class="card-header">
-        <div>
-          <div class="card-title">Relatórios semanais</div>
-          <div class="card-sub">Resumo por semana de presença e entregas.</div>
-        </div>
-      </div>
-
-      <div class="filters-row">
-        <div>
-          <strong>Semana de presença:</strong>
-          <select id="weekPresenceSelect" class="select" onchange="renderWeeklyPresenceReport()"></select>
-        </div>
-        <div>
-          <strong>Semana de entregas:</strong>
-          <select id="weekDeliveriesSelect" class="select" onchange="renderWeeklyDeliveriesReport()"></select>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:10px;">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Presença na semana</div>
-            <div class="card-sub">Eventos somados por jogador.</div>
-          </div>
-          <button class="btn btn-secondary" onclick="copyWeeklyPresenceText()">Copiar texto</button>
-        </div>
-        <div id="weekly-presence-content"></div>
-      </div>
-
-      <div class="card" style="margin-top:10px;">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Entregas na semana</div>
-            <div class="card-sub">Entregas somadas por jogador.</div>
-          </div>
-          <button class="btn btn-secondary" onclick="copyWeeklyDeliveriesText()">Copiar texto</button>
-        </div>
-        <div id="weekly-deliveries-content"></div>
-      </div>
-    </section>
-  </main>
-
-  <!-- MODAIS -->
-  <div class="modal-overlay" id="member-modal">
-    <div class="modal" style="max-width:520px;">
-      <div class="modal-header">
-        <div class="modal-title" id="member-modal-title">Novo membro</div>
-        <button class="btn btn-secondary" onclick="closeMemberModal()">Fechar</button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="member-index" />
-        <div class="form-group">
-          <label for="member-nick">Nick</label>
-          <input id="member-nick" class="input" placeholder="Nick do membro" />
-        </div>
-        <div class="form-group">
-          <label for="member-level">Level</label>
-          <input id="member-level" class="input" type="number" placeholder="Level" />
-        </div>
-        <div class="form-group">
-          <label for="member-power">Power</label>
-          <input id="member-power" class="input" type="number" placeholder="Power" />
-        </div>
-        <div class="form-group">
-          <label for="member-class">Classe</label>
-          <select id="member-class" class="select">
+        <div class="input-row">
+          <input id="searchMembers" class="input" placeholder="🔍 Buscar nick..." oninput="renderMembers()" style="flex: 1;">
+          <select id="filterClass" onchange="renderMembers()">
+            <option value="">Todas as classes</option>
             <option>Arqueira</option>
             <option>Bardo</option>
             <option>Berserker</option>
@@ -883,10 +145,251 @@
             <option>Maga</option>
           </select>
         </div>
-        <div class="form-group">
-          <label for="member-date">Data (dd/mm/aaaa)</label>
-          <input id="member-date" class="input" placeholder="dd/mm/aaaa" />
+        <div class="table-container">
+          <table id="members-table">
+            <thead>
+              <tr>
+                <th>Nick</th><th>Level</th><th>Power</th><th>Classe</th><th>Data</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="members-body">
+              <tr><td colspan="6" class="empty">Carregando...</td></tr>
+            </tbody>
+          </table>
         </div>
+      </div>
+    </div>
+
+    <!-- ABA PRESENÇA -->
+    <div class="tab" id="tab-events">
+      <div class="card">
+        <h3>Presença em eventos</h3>
+        <p>Registre múltiplos eventos por membro no mesmo dia.</p>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="openEventModal()">➕ Novo evento</button>
+          <button class="btn btn-danger" onclick="clearAllEvents()">🗑️ Apagar tudo</button>
+          <button class="btn btn-secondary" onclick="sendToDiscord('presencas')">💬 Discord</button>
+        </div>
+        <div class="input-row">
+          <select id="filterEvent" onchange="renderEvents()">
+            <option value="">Todos eventos</option>
+            <option>Boss do clã</option>
+            <option>Copa Ymir</option>
+            <option>Guerra da coroa</option>
+            <option>Ilha de Sindri</option>
+            <option>Interserver</option>
+          </select>
+          <select id="filterStatus" onchange="renderEvents()">
+            <option value="">Todos status</option>
+            <option>Presente</option>
+            <option>Faltou</option>
+            <option>Justificou</option>
+          </select>
+        </div>
+        <div class="table-container">
+          <table id="events-table">
+            <thead>
+              <tr>
+                <th>Data</th><th>Nick</th><th>Evento</th><th>Status</th><th>Justificativa</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="events-body">
+              <tr><td colspan="6" class="empty">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA ENTREGAS -->
+    <div class="tab" id="tab-deliveries">
+      <div class="card">
+        <h3>Entregas do clã</h3>
+        <p>Controle semanal e relatório mensal de entregas. Diminui automaticamente o repositório.</p>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="openDeliveryModal()">➕ Registrar entrega</button>
+          <button class="btn btn-secondary" onclick="showMonthlyReport()">📋 Relatório mensal</button>
+          <button class="btn btn-danger" onclick="clearAllDeliveries()">🗑️ Apagar tudo</button>
+          <button class="btn btn-secondary" onclick="sendToDiscord('entregas')">💬 Discord</button>
+        </div>
+        <div class="input-row">
+          <input id="searchDeliveriesNick" class="input" placeholder="🔍 Buscar por nick..." oninput="renderDeliveries()" style="flex: 1;">
+          <input id="searchDeliveriesDesc" class="input" placeholder="🔍 Buscar pelo que recebeu..." oninput="renderDeliveries()" style="flex: 1;">
+          <select id="filterDeliveriesClass" onchange="renderDeliveries()">
+            <option value="">Todas as classes</option>
+            <option>Arqueira</option>
+            <option>Bardo</option>
+            <option>Berserker</option>
+            <option>Lanceiro</option>
+            <option>Maga</option>
+          </select>
+        </div>
+        <div class="table-container">
+          <table id="deliveries-table">
+            <thead>
+              <tr>
+                <th>Data</th><th>Nick</th><th>Classe</th><th>Descrição da entrega</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="deliveries-body">
+              <tr><td colspan="5" class="empty">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card" id="monthly-report-card" style="margin-top:14px; display:none;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Relatório mensal de entregas</div>
+              <div class="card-sub">Resumo do que cada membro recebeu no mês.</div>
+            </div>
+          </div>
+          <div class="input-row">
+            <input type="month" class="input" id="reportMonth" onchange="renderMonthlyReport()" />
+          </div>
+          <div class="table-container">
+            <table id="monthly-report-table">
+              <thead>
+                <tr>
+                  <th>Nick</th>
+                  <th>Resumo de entregas</th>
+                </tr>
+              </thead>
+              <tbody id="monthly-report-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA REPOSITÓRIO -->
+    <div class="tab" id="tab-repo">
+      <div class="card">
+        <h3>Itens do repositório</h3>
+        <p>Se usar o mesmo nome de item, ele só atualiza a quantidade.</p>
+
+        <div class="card" style="margin-bottom:10px;">
+          <div class="card-header">
+            <div class="card-title" style="font-size:16px;">Cadastro / edição de itens</div>
+          </div>
+          <div style="padding: 15px 0;">
+            <div class="form-group">
+              <label for="repoItem">Item</label>
+              <input id="repoItem" class="input" placeholder="Nome do item" />
+            </div>
+            <div class="form-group">
+              <label for="repoType">Tipo</label>
+              <input id="repoType" class="input" placeholder="Tipo (matéria-prima, equipamento, etc.)" />
+            </div>
+            <div class="form-group">
+              <label for="repoBoss">Boss que dropa</label>
+              <input id="repoBoss" class="input" placeholder="Nome do boss" />
+            </div>
+            <div class="form-group">
+              <label for="repoQuantity">Qtd em estoque</label>
+              <input id="repoQuantity" class="input" type="number" placeholder="Quantidade atual" />
+            </div>
+            <div class="btn-row" style="margin-top:8px;">
+              <button class="btn btn-primary" onclick="addRepoItem()">Salvar item</button>
+              <button class="btn btn-danger" onclick="clearRepo()">
+                Limpar repositório
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <input id="searchRepoItem" class="input" placeholder="🔍 Buscar item..." oninput="renderRepo()" style="margin-bottom: 15px;">
+        
+        <div class="table-container">
+          <table id="repoTable">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Tipo</th>
+                <th>Boss que dropa</th>
+                <th>Qtd em estoque</th>
+                <th class="text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="repoTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA RELATÓRIOS -->
+    <div class="tab" id="tab-reports">
+      <div class="card">
+        <h3>Relatórios semanais</h3>
+        <p>Resumo por semana de presença e entregas.</p>
+        <div class="input-row">
+          <div style="flex: 1;">
+            <strong>Semana de presença:</strong>
+            <select id="weekPresenceSelect" class="input" onchange="renderWeeklyPresenceReport()"></select>
+          </div>
+          <div style="flex: 1;">
+            <strong>Semana de entregas:</strong>
+            <select id="weekDeliveriesSelect" class="input" onchange="renderWeeklyDeliveriesReport()"></select>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:10px;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Presença na semana</div>
+              <div class="card-sub">Eventos somados por jogador.</div>
+            </div>
+            <button class="btn btn-secondary" onclick="copyWeeklyPresenceText()">Copiar texto</button>
+          </div>
+          <div id="weekly-presence-content"></div>
+        </div>
+
+        <div class="card" style="margin-top:10px;">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Entregas na semana</div>
+              <div class="card-sub">Entregas somadas por jogador.</div>
+            </div>
+            <button class="btn btn-secondary" onclick="copyWeeklyDeliveriesText()">Copiar texto</button>
+          </div>
+          <div id="weekly-deliveries-content"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAIS -->
+  <div class="modal" id="member-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="member-modal-title">Novo membro</h2>
+        <button class="close-btn" onclick="closeMemberModal()">✕</button>
+      </div>
+      <input type="hidden" id="member-index" />
+      <div class="form-group">
+        <label for="member-nick">Nick</label>
+        <input id="member-nick" class="input" placeholder="Nick do membro" />
+      </div>
+      <div class="form-group">
+        <label for="member-level">Level</label>
+        <input id="member-level" class="input" type="number" placeholder="Level" />
+      </div>
+      <div class="form-group">
+        <label for="member-power">Power</label>
+        <input id="member-power" class="input" type="number" placeholder="Power" />
+      </div>
+      <div class="form-group">
+        <label for="member-class">Classe</label>
+        <select id="member-class" class="input">
+          <option>Arqueira</option>
+          <option>Bardo</option>
+          <option>Berserker</option>
+          <option>Lanceiro</option>
+          <option>Maga</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="member-date">Data (dd/mm/aaaa)</label>
+        <input id="member-date" class="input" placeholder="dd/mm/aaaa" />
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeMemberModal()">Cancelar</button>
@@ -895,49 +398,47 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="event-modal">
-    <div class="modal" style="max-width:520px;">
+  <div class="modal" id="event-modal">
+    <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title" id="event-modal-title">Registrar presença</div>
-        <button class="btn btn-secondary" onclick="closeEventModal()">Fechar</button>
+        <h2 id="event-modal-title">Registrar presença</h2>
+        <button class="close-btn" onclick="closeEventModal()">✕</button>
       </div>
-      <div class="modal-body">
-        <input type="hidden" id="event-index" />
-        <div class="form-group">
-          <label for="event-date">Data (dd/mm/aaaa)</label>
-          <input id="event-date" class="input" placeholder="dd/mm/aaaa" />
-        </div>
-        <div class="form-group">
-          <label for="event-name">Evento</label>
-          <select id="event-name" class="select">
-            <option>Boss do clã</option>
-            <option>Copa Ymir</option>
-            <option>Guerra da coroa</option>
-            <option>Ilha de Sindri</option>
-            <option>Interserver</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="event-nick">Nick</label>
-          <select id="event-nick" class="select"></select>
-        </div>
-        <div class="form-group">
-          <label for="event-status">Status</label>
-          <select id="event-status" class="select">
-            <option>Presente</option>
-            <option>Faltou</option>
-            <option>Justificou</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="event-just">Justificativa (se houver)</label>
-          <textarea id="event-just" class="textarea" rows="2" placeholder="Justificativa"></textarea>
-        </div>
-        <div class="form-group">
-          <label>
-            <input type="checkbox" id="event-keep-same" />
-            Continuar adicionando eventos para este nick e data
-          </label>
+      <input type="hidden" id="event-index" />
+      <div class="form-group">
+        <label for="event-date">Data (dd/mm/aaaa)</label>
+        <input id="event-date" class="input" placeholder="dd/mm/aaaa" />
+      </div>
+      <div class="form-group">
+        <label for="event-name">Evento</label>
+        <select id="event-name" class="input">
+          <option>Boss do clã</option>
+          <option>Copa Ymir</option>
+          <option>Guerra da coroa</option>
+          <option>Ilha de Sindri</option>
+          <option>Interserver</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="event-nick">Nick</label>
+        <select id="event-nick" class="input"></select>
+      </div>
+      <div class="form-group">
+        <label for="event-status">Status</label>
+        <select id="event-status" class="input">
+          <option>Presente</option>
+          <option>Faltou</option>
+          <option>Justificou</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="event-just">Justificativa (se houver)</label>
+        <input id="event-just" class="input" placeholder="Justificativa" />
+      </div>
+      <div class="form-group">
+        <div class="checkbox-group">
+          <input type="checkbox" id="event-keep-same" />
+          <label for="event-keep-same">Continuar adicionando eventos para este nick e data</label>
         </div>
       </div>
       <div class="modal-footer">
@@ -947,36 +448,34 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="delivery-modal">
-    <div class="modal" style="max-width:520px;">
+  <div class="modal" id="delivery-modal">
+    <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title" id="delivery-modal-title">Registrar entrega</div>
-        <button class="btn btn-secondary" onclick="closeDeliveryModal()">Fechar</button>
+        <h2 id="delivery-modal-title">Registrar entrega</h2>
+        <button class="close-btn" onclick="closeDeliveryModal()">✕</button>
       </div>
-      <div class="modal-body">
-        <input type="hidden" id="delivery-index" />
-        <div class="form-group">
-          <label for="delivery-date">Data (dd/mm/aaaa)</label>
-          <input id="delivery-date" class="input" placeholder="dd/mm/aaaa" />
-        </div>
-        <div class="form-group">
-          <label for="delivery-nick">Nick</label>
-          <input id="delivery-nick" class="input" placeholder="Nick do membro" />
-        </div>
-        <div class="form-group">
-          <label for="delivery-class">Classe</label>
-          <select id="delivery-class" class="select">
-            <option>Arqueira</option>
-            <option>Bardo</option>
-            <option>Berserker</option>
-            <option>Lanceiro</option>
-            <option>Maga</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="delivery-desc">Descrição da entrega</label>
-          <textarea id="delivery-desc" class="textarea" rows="2" placeholder="O que foi entregue"></textarea>
-        </div>
+      <input type="hidden" id="delivery-index" />
+      <div class="form-group">
+        <label for="delivery-date">Data (dd/mm/aaaa)</label>
+        <input id="delivery-date" class="input" placeholder="dd/mm/aaaa" />
+      </div>
+      <div class="form-group">
+        <label for="delivery-nick">Nick</label>
+        <input id="delivery-nick" class="input" placeholder="Nick do membro" />
+      </div>
+      <div class="form-group">
+        <label for="delivery-class">Classe</label>
+        <select id="delivery-class" class="input">
+          <option>Arqueira</option>
+          <option>Bardo</option>
+          <option>Berserker</option>
+          <option>Lanceiro</option>
+          <option>Maga</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="delivery-desc">Descrição da entrega</label>
+        <input id="delivery-desc" class="input" placeholder="O que foi entregue" />
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeDeliveryModal()">Cancelar</button>
@@ -986,18 +485,61 @@
   </div>
 
   <script>
-    // ---- DATA HELPERS ----
-    function toISOFromBR(brDate) {
-      const [d, m, y] = (brDate || '').split('/');
-      if (!d || !m || !y) return '';
-      return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+    const STORAGE_KEY = 'murders_painel_v9';
+    let state = {
+      clan: 1,
+      webhookUrl: '',
+      members: { 1: [], 2: [] },
+      events: { 1: [], 2: [] },
+      deliveries: { 1: [], 2: [] },
+      repoItems: { 1: [], 2: [] }
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          state = JSON.parse(raw);
+          console.log('✅ Estado carregado');
+        }
+      } catch (e) {
+        console.error('Erro ao carregar:', e);
+      }
+      renderAll();
     }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        console.log('✅ Salvo');
+        showMessage('✅ Dados salvos com sucesso!', 'success');
+      } catch (e) {
+        console.error('Erro ao salvar:', e);
+        showMessage('❌ Erro ao salvar os dados', 'error');
+      }
+    }
+
+    function showMessage(msg, type = 'success') {
+      const container = document.getElementById('msgContainer');
+      container.innerHTML = `<div class="${type}">${msg}</div>`;
+      setTimeout(() => { container.innerHTML = ''; }, 3000);
+    }
+
+    function toISOFromBR(brDate) {
+      if (!brDate) return '';
+      const parts = brDate.split('/');
+      if (parts.length !== 3) return '';
+      const [d, m, y] = parts;
+      return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    }
+
     function toBRFromISO(isoDate) {
       if (!isoDate) return '';
       const [y, m, d] = isoDate.split('-');
       if (!y || !m || !d) return '';
-      return `${d.padStart(2,'0')}/${m.padStart(2,'0')}/${y}`;
+      return `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`;
     }
+
     function todayBR() {
       const now = new Date();
       const d = String(now.getDate()).padStart(2,'0');
@@ -1005,12 +547,14 @@
       const y = now.getFullYear();
       return `${d}/${m}/${y}`;
     }
+
     function parseISO(iso) {
       if (!iso) return null;
       const [y,m,d] = iso.split('-').map(n=>parseInt(n,10));
       if (!y || !m || !d) return null;
       return new Date(y, m-1, d);
     }
+
     function formatDateBRFromDate(d) {
       if (!d) return '';
       const dia = String(d.getDate()).padStart(2,'0');
@@ -1018,6 +562,7 @@
       const ano = d.getFullYear();
       return `${dia}/${mes}/${ano}`;
     }
+
     function getWeekRange(date) {
       const d = new Date(date);
       d.setHours(0,0,0,0);
@@ -1030,48 +575,10 @@
       saturday.setHours(23,59,59,999);
       return { start: sunday, end: saturday };
     }
+
     function weekKeyFromDate(date) {
       const range = getWeekRange(date);
       return range.start.toISOString().slice(0,10);
-    }
-
-    // ---- PDF TEXT EXTRACT ----
-    async function extractTextFromPDF(file) {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let fullText = '';
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const content = await page.getTextContent();
-        const strings = content.items.map(item => item.str);
-        fullText += strings.join(' ') + '\n';
-      }
-      return fullText;
-    }
-
-    // ---- STATE ----
-    const STORAGE_KEY = 'murders-dashboard-v4';
-    let state = {
-      clan: 1,
-      webhookUrl: '',
-      members: { 1: [], 2: [] },
-      events: { 1: [], 2: [] },
-      deliveries: { 1: [], 2: [] },
-      repoItems: { 1: [], 2: [] },
-    };
-
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          state = Object.assign(state, parsed);
-        }
-      } catch (e) { console.warn('Erro ao carregar localStorage', e); }
-    }
-    function saveState() {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-      catch (e) { console.warn('Erro ao salvar localStorage', e); }
     }
 
     function setClan(clan) {
@@ -1083,20 +590,28 @@
     }
 
     function switchTab(tab) {
-      document.querySelectorAll('.nav-btn').forEach(btn => {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tab);
       });
-      document.querySelectorAll('section.card[id^="tab-"]').forEach(sec => {
-        sec.style.display = sec.id === 'tab-' + tab ? 'block' : 'none';
+      document.querySelectorAll('.tab').forEach(sec => {
+        sec.classList.toggle('active', sec.id === 'tab-' + tab);
       });
       const titles = {
-        members: 'Membros',
-        events: 'Presença em eventos',
-        deliveries: 'Entregas',
-        repo: 'Repositório',
-        reports: 'Relatórios semanais'
+        members: '👥 Membros',
+        events: '📊 Presença em eventos',
+        deliveries: '📦 Entregas',
+        repo: '📂 Repositório',
+        reports: '📈 Relatórios semanais'
       };
-      document.getElementById('currentTabTitle').textContent = titles[tab] || '';
+      const descs = {
+        members: 'Controle de membros',
+        events: 'Registro de presenças em eventos',
+        deliveries: 'Controle de entregas por membro',
+        repo: 'Itens armazenados no repositório do clã',
+        reports: 'Resumos semanais de presença e entregas'
+      };
+      document.getElementById('pageTitle').textContent = titles[tab] || '';
+      document.getElementById('pageDesc').textContent = descs[tab] || '';
       if (tab === 'reports') {
         buildWeekSelectors();
         renderWeeklyPresenceReport();
@@ -1104,68 +619,100 @@
       }
     }
 
-    function updateDate() {
-      document.getElementById('currentDate').textContent = 'Hoje: ' + todayBR();
+    function toggleTheme() {
+      document.body.style.background = document.body.style.background === 'rgb(30, 30, 30)' ? '#f0f4f8' : '#1e1e1e';
+      document.body.style.color = document.body.style.color === 'rgb(255, 255, 255)' ? '#333' : '#fff';
     }
 
-    // ---- WEBHOOK ----
     function saveWebhook() {
-      const input = document.getElementById('webhookUrl');
-      state.webhookUrl = input.value.trim();
+      state.webhookUrl = document.getElementById('webhookUrl').value.trim();
       saveState();
-      alert('Webhook salvo para este navegador.');
     }
-    function loadWebhookToInput() {
-      document.getElementById('webhookUrl').value = state.webhookUrl || '';
-    }
+
     function sendToDiscord(tipo) {
-      const webhookUrl = (state.webhookUrl || '').trim();
-      if (!webhookUrl) {
-        alert('Defina primeiro a URL do webhook do Discord.');
+      if (!state.webhookUrl) {
+        showMessage('⚠️ Configure o webhook', 'error');
         return;
       }
-      const msg = `Painel Murders – ${tipo} • Clã ${state.clan} • ${todayBR()}`;
-      alert('Simulação de envio para o Discord:\n\n' + msg + '\n\nWebhook: ' + webhookUrl);
+      showMessage('📤 Enviando ' + tipo + ' para Discord...', 'success');
     }
 
-    // ---- TEMA ----
-    const THEME_KEY = 'murders-theme';
-    function applyTheme(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-      const icon = document.getElementById('theme-toggle-icon');
-      const text = document.getElementById('theme-toggle-text');
-      if (theme === 'dark') { icon.textContent = '🌞'; text.textContent = 'Modo claro'; }
-      else { icon.textContent = '🌙'; text.textContent = 'Modo escuro'; }
-    }
-    function initTheme() {
-      const stored = localStorage.getItem(THEME_KEY);
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const theme = stored || (prefersDark ? 'dark' : 'light');
-      applyTheme(theme);
-      localStorage.setItem(THEME_KEY, theme);
-    }
-    function setupThemeToggle() {
-      const btn = document.getElementById('theme-toggle');
-      if (!btn) return;
-      btn.addEventListener('click', () => {
-        const current = document.documentElement.getAttribute('data-theme') || 'light';
-        const next = current === 'light' ? 'dark' : 'light';
-        applyTheme(next);
-        localStorage.setItem(THEME_KEY, next);
-      });
+    // IMPORT / EXPORT JSON
+    function exportJSON() {
+      const dataStr = JSON.stringify(state, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `murders-painel-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
-    // ---- MODAIS ----
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function importJSON() {
+      const input = document.getElementById('json-file-input');
+      if (input) input.click();
+    }
 
-    // ---- MEMBROS ----
+    function handleJSONFile(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (!imported || typeof imported !== 'object') {
+            alert('Arquivo JSON inválido.');
+            return;
+          }
+          state = imported;
+          saveState();
+          renderAll();
+          alert('Dados importados com sucesso.');
+        } catch (err) {
+          console.error(err);
+          alert('Erro ao ler o JSON.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // EXPORTAR PDF DA ABA ATUAL (usa print do navegador)
+    function exportPDF() {
+      const activeTab = document.querySelector('.tab.active');
+      if (!activeTab) {
+        alert('Nenhuma aba ativa encontrada.');
+        return;
+      }
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Murders - Export PDF</title>
+            <style>
+              body { font-family: Poppins, sans-serif; font-size: 12px; }
+              table { width: 100%; border-collapse: collapse; }
+              th, td { border: 1px solid #ccc; padding: 4px; text-align: left; }
+              th { background: #f0f0f0; }
+            </style>
+          </head>
+          <body>
+            ${activeTab.innerHTML}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    }
+
     function openMemberModal(index = null) {
-      document.getElementById('member-index').value = index !== null ? index : '';
-      document.getElementById('member-modal-title').textContent = index !== null ? 'Editar membro' : 'Novo membro';
-      if (index !== null) {
+      document.getElementById('member-index').value = index || '';
+      document.getElementById('member-modal-title').textContent = index !== null && index !== '' ? 'Editar membro' : 'Novo membro';
+      if (index !== null && index !== '') {
         const m = state.members[state.clan][index];
-        if (!m) return;
         document.getElementById('member-nick').value = m.nick;
         document.getElementById('member-level').value = m.level || '';
         document.getElementById('member-power').value = m.power || '';
@@ -1180,17 +727,29 @@
       }
       openModal('member-modal');
     }
+
     function closeMemberModal() { closeModal('member-modal'); }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
     function saveMember() {
       const idxStr = document.getElementById('member-index').value;
       const nick = document.getElementById('member-nick').value.trim();
-      const level = document.getElementById('member-level').value.trim();
-      const power = document.getElementById('member-power').value.trim();
-      const classe = document.getElementById('member-class').value;
-      const dataBR = document.getElementById('member-date').value.trim() || todayBR();
-      if (!nick) { alert('Nick é obrigatório.'); return; }
-      const dataISO = toISOFromBR(dataBR);
-      const record = { nick, level, power, classe, data: dataISO };
+      if (!nick) { showMessage('❌ Nick é obrigatório.', 'error'); return; }
+      const dataISO = toISOFromBR(document.getElementById('member-date').value);
+      const record = { 
+        nick, 
+        level: document.getElementById('member-level').value.trim(), 
+        power: document.getElementById('member-power').value.trim(), 
+        classe: document.getElementById('member-class').value, 
+        data: dataISO 
+      };
       const list = state.members[state.clan];
       if (idxStr !== '') {
         const idx = parseInt(idxStr,10);
@@ -1201,16 +760,19 @@
       saveState();
       closeMemberModal();
       renderMembers();
+      fillEventNickOptions();
     }
+
     function deleteMember(index) {
       if (!confirm('Excluir este membro?')) return;
       state.members[state.clan].splice(index,1);
       saveState();
       renderMembers();
+      fillEventNickOptions();
     }
+
     function renderMembers() {
       const body = document.getElementById('members-body');
-      if (!body) return;
       body.innerHTML = '';
       const search = (document.getElementById('searchMembers')?.value || '').toLowerCase();
       const filterClass = document.getElementById('filterClass')?.value || '';
@@ -1222,7 +784,7 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>
-            <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;"
+            <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;background:none;border:none;color:#3498db;text-decoration:underline;cursor:pointer;"
               onclick="openEventModal(null, '${m.nick}')">
               ${m.nick}
             </button>
@@ -1251,101 +813,23 @@
       state.members[state.clan] = [];
       saveState();
       renderMembers();
+      fillEventNickOptions();
     }
-
-    async function importMembersFromPDF(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-      try {
-        const text = await extractTextFromPDF(file);
-        const linhas = text.split('\n')
-          .map(l => l.trim())
-          .filter(l => l.length > 0);
-        const list = state.members[state.clan];
-        linhas.forEach(linha => {
-          const partes = linha.split(/\s{2,}/).map(p => p.trim()).filter(Boolean);
-          if (partes.length < 4) return;
-          const [nick, level, power, classe] = partes;
-          if (!nick || nick.toLowerCase() === 'nick') return;
-          const existingIdx = list.findIndex(m => m.nick.toLowerCase() === nick.toLowerCase());
-          const record = {
-            nick,
-            level: level || '',
-            power: power || '',
-            classe: classe || '',
-            data: toISOFromBR(todayBR())
-          };
-          if (existingIdx >= 0) list[existingIdx] = record;
-          else list.push(record);
-        });
-        saveState();
-        renderMembers();
-        alert('Importação de membros via PDF concluída.');
-      } catch (err) {
-        console.error(err);
-        alert('Erro ao ler o PDF de membros. Ajuste o formato se necessário.');
-      } finally {
-        event.target.value = '';
-      }
-    }
-
-    async function importMembersFromJSON(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-      try {
-        const text = await file.text();
-        const data = JSON.parse(text);
-        if (!Array.isArray(data)) {
-          alert('JSON inválido: esperado um array de membros.');
-          return;
-        }
-        state.members[state.clan] = data.map(m => ({
-          nick: String(m.nick || '').trim(),
-          level: String(m.level || ''),
-          power: String(m.power || ''),
-          classe: String(m.classe || ''),
-          data: m.data || toISOFromBR(todayBR())
-        }));
-        saveState();
-        renderMembers();
-        alert('Importação de membros via JSON concluída.');
-      } catch (err) {
-        console.error(err);
-        alert('Erro ao ler JSON de membros.');
-      } finally {
-        event.target.value = '';
-      }
-    }
-
-    // ---- PRESENÇA ----
 
     function fillEventNickOptions(selectedNick = '') {
       const select = document.getElementById('event-nick');
-      if (!select) return;
-      select.innerHTML = '';
-      const list = [...(state.members[state.clan] || [])].sort((a, b) =>
-        a.nick.localeCompare(b.nick, 'pt-BR')
-      );
-      const emptyOpt = document.createElement('option');
-      emptyOpt.value = '';
-      emptyOpt.textContent = 'Selecione o nick';
-      select.appendChild(emptyOpt);
-      list.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m.nick;
-        opt.textContent = m.nick;
-        if (m.nick === selectedNick) opt.selected = true;
-        select.appendChild(opt);
-      });
+      select.innerHTML = '<option value="">-- Selecione --</option>' + 
+        [...(state.members[state.clan] || [])]
+        .sort((a,b) => a.nick.localeCompare(b.nick,'pt-BR'))
+        .map(m => `<option value="${m.nick}" ${m.nick === selectedNick ? 'selected' : ''}>${m.nick}</option>`)
+        .join('');
     }
 
     function openEventModal(index = null, nickFromClick = null) {
-      document.getElementById('event-index').value = index !== null ? index : '';
-      document.getElementById('event-modal-title').textContent = index !== null ? 'Editar presença' : 'Registrar presença';
-
-      if (index !== null) {
+      document.getElementById('event-index').value = index || '';
+      document.getElementById('event-modal-title').textContent = index !== null && index !== '' ? 'Editar presença' : 'Registrar presença';
+      if (index !== null && index !== '') {
         const e = state.events[state.clan][index];
-        if (!e) return;
         document.getElementById('event-date').value = toBRFromISO(e.data) || todayBR();
         document.getElementById('event-name').value = e.evento;
         fillEventNickOptions(e.nick);
@@ -1362,6 +846,7 @@
       }
       openModal('event-modal');
     }
+
     function closeEventModal() { closeModal('event-modal'); }
 
     function saveEvent() {
@@ -1371,32 +856,27 @@
       const nick = document.getElementById('event-nick').value.trim();
       const status = document.getElementById('event-status').value;
       const justificativa = document.getElementById('event-just').value.trim();
-      const keepSame = document.getElementById('event-keep-same')?.checked || false;
-
-      if (!nick) { alert('Nick é obrigatório.'); return; }
+      if (!nick) { showMessage('❌ Nick é obrigatório.', 'error'); return; }
       const dataISO = toISOFromBR(dataBR);
       const record = { data: dataISO, evento, nick, status, justificativa };
       const list = state.events[state.clan];
-
       if (idxStr !== '') {
         const idx = parseInt(idxStr,10);
-        if (!Number.isNaN(idx) && list[idx]) {
-          list[idx] = record;
-        }
+        if (!Number.isNaN(idx) && list[idx]) list[idx] = record;
       } else {
         list.push(record);
       }
-
       saveState();
       renderEvents();
-
-      if (keepSame) {
+      if (document.getElementById('event-keep-same').checked) {
         document.getElementById('event-name').value = 'Boss do clã';
         document.getElementById('event-status').value = 'Presente';
         document.getElementById('event-just').value = '';
         document.getElementById('event-index').value = '';
+        showMessage('✅ Evento salvo! Continue adicionando...', 'success');
       } else {
         closeEventModal();
+        showMessage('✅ Evento salvo!', 'success');
       }
     }
 
@@ -1410,63 +890,50 @@
 
     function renderEvents() {
       const body = document.getElementById('events-body');
-      if (!body) return;
-      body.innerHTML = '';
-
       const filterEvent = document.getElementById('filterEvent')?.value || '';
       const filterStatus = document.getElementById('filterStatus')?.value || '';
-
       let list = [...(state.events[state.clan] || [])];
-      if (filterEvent) list = list.filter(e => e.evento === filterEvent);
-      if (filterStatus) list = list.filter(e => e.status === filterStatus);
-
-      list.sort((a, b) => {
-        const d = (a.data || '').localeCompare(b.data || '');
-        if (d !== 0) return d;
-        return a.nick.localeCompare(b.nick, 'pt-BR');
-      });
-
-      list.forEach((e, idx) => {
-        let resumo = '';
-        if (e.status === 'Presente') resumo = `Presente no evento: ${e.evento}.`;
-        else if (e.status === 'Faltou') resumo = `Faltou no evento: ${e.evento}.`;
-        else if (e.status === 'Justificou') resumo = `Justificou no evento: ${e.evento}.`;
+      if (filterEvent) list = list.filter(e=>e.evento===filterEvent);
+      if (filterStatus) list = list.filter(e=>e.status===filterStatus);
+      list.sort((a,b)=>(a.data || '').localeCompare(b.data || '') || a.nick.localeCompare(b.nick,'pt-BR'));
+      body.innerHTML = '';
+      list.forEach((e,idx)=>{
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${e.nick}</td>
-          <td>${resumo}</td>
           <td>${toBRFromISO(e.data)}</td>
+          <td><strong>${e.nick}</strong></td>
+          <td>${e.evento}</td>
+          <td><strong style="color: ${e.status === 'Presente' ? '#27ae60' : e.status === 'Faltou' ? '#e74c3c' : '#f39c12'}">${e.status}</strong></td>
+          <td>${e.justificativa || '-'}</td>
           <td>
             <div class="table-actions">
-              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;"
-                onclick="openEventModal(${idx})">
-                Ver / editar
-              </button>
-              <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;"
-                onclick="deleteEvent(${idx})">
-                Apagar
-              </button>
+              <button class="btn btn-secondary" style="padding:3px 8px;font-size:11px;" onclick="openEventModal(${idx})">Ver / editar</button>
+              <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="deleteEvent(${idx})">Excluir</button>
             </div>
           </td>`;
         body.appendChild(tr);
       });
-
       if (!list.length) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="4">Nenhuma presença registrada com esses filtros.</td>`;
+        const tr=document.createElement('tr');
+        tr.innerHTML='<td colspan="6">Nenhuma presença registrada com esses filtros.</td>';
         body.appendChild(tr);
       }
-
       buildWeekSelectors();
     }
 
-    // ---- ENTREGAS ----
+    function clearAllEvents() {
+      if (!confirm('Tem certeza que quer apagar TODAS as presenças deste clã?')) return;
+      state.events[state.clan] = [];
+      saveState();
+      renderEvents();
+      buildWeekSelectors();
+    }
+
     function openDeliveryModal(index = null) {
-      document.getElementById('delivery-index').value = index !== null ? index : '';
-      document.getElementById('delivery-modal-title').textContent = index !== null ? 'Editar entrega' : 'Registrar entrega';
-      if (index !== null) {
+      document.getElementById('delivery-index').value = index || '';
+      document.getElementById('delivery-modal-title').textContent = index !== null && index !== '' ? 'Editar entrega' : 'Registrar entrega';
+      if (index !== null && index !== '') {
         const d = state.deliveries[state.clan][index];
-        if (!d) return;
         document.getElementById('delivery-date').value = toBRFromISO(d.data) || todayBR();
         document.getElementById('delivery-nick').value = d.nick;
         document.getElementById('delivery-class').value = d.classe;
@@ -1479,26 +946,8 @@
       }
       openModal('delivery-modal');
     }
-    function closeDeliveryModal() { closeModal('delivery-modal'); }
 
-    function debitRepoFromDelivery(descricao) {
-      if (!descricao) return;
-      const list = state.repoItems[state.clan] || (state.repoItems[state.clan] = []);
-      const matchQtd = descricao.match(/(\d+)/);
-      const qtd = matchQtd ? parseInt(matchQtd[1], 10) : 1;
-      if (!qtd || qtd <= 0) return;
-      const found = list.find(r =>
-        descricao.toLowerCase().includes((r.item || '').toLowerCase())
-      );
-      if (found) {
-        if (typeof found.qtd !== 'number') {
-          found.qtd = Number(found.qtd || 0);
-        }
-        found.qtd = Math.max(0, found.qtd - qtd);
-      }
-      saveState();
-      renderRepo();
-    }
+    function closeDeliveryModal() { closeModal('delivery-modal'); }
 
     function saveDelivery() {
       const idxStr = document.getElementById('delivery-index').value;
@@ -1506,7 +955,7 @@
       const nick = document.getElementById('delivery-nick').value.trim();
       const classe = document.getElementById('delivery-class').value;
       const descricao = document.getElementById('delivery-desc').value.trim();
-      if (!nick) { alert('Nick é obrigatório.'); return; }
+      if (!nick || !descricao) { showMessage('❌ Nick e descrição são obrigatórios.', 'error'); return; }
       const dataISO = toISOFromBR(dataBR);
       const record = { data: dataISO, nick, classe, descricao };
       const list = state.deliveries[state.clan];
@@ -1515,12 +964,20 @@
         if (!Number.isNaN(idx) && list[idx]) list[idx]=record;
       } else {
         list.push(record);
-        debitRepoFromDelivery(descricao);
+        const repo = state.repoItems[state.clan] || [];
+        const match = descricao.match(/(\d+)/);
+        const qtd = match ? parseInt(match[1]) : 1;
+        const found = repo.find(r => descricao.toLowerCase().includes((r.item || '').toLowerCase()));
+        if (found) {
+          found.qtd = Math.max(0, Number(found.qtd || 0) - qtd);
+        }
       }
       saveState();
       closeDeliveryModal();
       renderDeliveries();
+      renderRepo();
     }
+
     function deleteDelivery(index) {
       if (!confirm('Excluir esta entrega?')) return;
       state.deliveries[state.clan].splice(index,1);
@@ -1528,22 +985,18 @@
       renderDeliveries();
       buildWeekSelectors();
     }
+
     function renderDeliveries() {
       const body = document.getElementById('deliveries-body');
-      if (!body) return;
-      body.innerHTML = '';
       const searchNick = (document.getElementById('searchDeliveriesNick')?.value || '').toLowerCase();
       const searchDesc = (document.getElementById('searchDeliveriesDesc')?.value || '').toLowerCase();
       const filterClass = document.getElementById('filterDeliveriesClass')?.value || '';
       let list = [...(state.deliveries[state.clan] || [])];
-      if (searchNick) {
-        list = list.filter(d => d.nick.toLowerCase().includes(searchNick));
-      }
-      if (searchDesc) {
-        list = list.filter(d => (d.descricao || '').toLowerCase().includes(searchDesc));
-      }
+      if (searchNick) list = list.filter(d=>d.nick.toLowerCase().includes(searchNick));
+      if (searchDesc) list = list.filter(d=>(d.descricao || '').toLowerCase().includes(searchDesc));
       if (filterClass) list = list.filter(d=>d.classe===filterClass);
       list.sort((a,b)=>a.nick.localeCompare(b.nick,'pt-BR'));
+      body.innerHTML = '';
       list.forEach((d,idx)=>{
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -1567,59 +1020,11 @@
       buildWeekSelectors();
     }
 
-    async function importDeliveriesFromPDF(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-      try {
-        const text = await extractTextFromPDF(file);
-        const linhas = text.split('\n')
-          .map(l => l.trim())
-          .filter(l => l.length > 0);
-        const list = state.deliveries[state.clan];
-        linhas.forEach(linha => {
-          const partes = linha.split(/\s{2,}/).map(p => p.trim()).filter(Boolean);
-          if (partes.length < 4) return;
-          const [dataStr, nick, classe, descricao] = partes;
-          if (!nick || nick.toLowerCase()==='nick') return;
-          const dataISO = toISOFromBR(dataStr);
-          list.push({ data: dataISO, nick, classe, descricao });
-        });
-        saveState();
-        renderDeliveries();
-        alert('Importação de entregas via PDF concluída.');
-      } catch (err) {
-        console.error(err);
-        alert('Erro ao ler o PDF de entregas.');
-      } finally {
-        event.target.value = '';
-      }
-    }
-
-    async function importDeliveriesFromJSON(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-      try {
-        const text = await file.text();
-        const data = JSON.parse(text);
-        if (!Array.isArray(data)) {
-          alert('JSON inválido: esperado um array de entregas.');
-          return;
-        }
-        state.deliveries[state.clan] = data.map(d => ({
-          data: d.data || toISOFromBR(todayBR()),
-          nick: String(d.nick || '').trim(),
-          classe: String(d.classe || ''),
-          descricao: String(d.descricao || '')
-        }));
-        saveState();
-        renderDeliveries();
-        alert('Importação de entregas via JSON concluída.');
-      } catch (err) {
-        console.error(err);
-        alert('Erro ao ler JSON de entregas.');
-      } finally {
-        event.target.value = '';
-      }
+    function clearAllDeliveries() {
+      if (!confirm('Tem certeza que quer apagar TODAS as entregas deste clã?')) return;
+      state.deliveries[state.clan] = [];
+      saveState();
+      renderDeliveries();
     }
 
     function showMonthlyReport() {
@@ -1631,12 +1036,12 @@
       }
       renderMonthlyReport();
     }
+
     function renderMonthlyReport() {
       const monthInput=document.getElementById('reportMonth').value;
       const body=document.getElementById('monthly-report-body');
-      if (!body) return;
-      body.innerHTML='';
       if (!monthInput) return;
+      body.innerHTML='';
       const [year,month]=monthInput.split('-');
       const list=(state.deliveries[state.clan] || []).filter(d=>d.data && d.data.startsWith(year+'-'+month));
       const byNick={};
@@ -1657,23 +1062,14 @@
       }
     }
 
-    // ---- REPOSITÓRIO ----
     function renderRepo() {
       const tbody = document.getElementById('repoTableBody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
       const search = (document.getElementById('searchRepoItem')?.value || '').toLowerCase();
       let list = state.repoItems[state.clan] || [];
-      if (search) {
-        list = list.filter(r =>
-          (r.item || '').toLowerCase().includes(search) ||
-          (r.tipo || '').toLowerCase().includes(search) ||
-          (r.boss || '').toLowerCase().includes(search)
-        );
-      }
+      if (search) list = list.filter(r => (r.item || '').toLowerCase().includes(search) || (r.tipo || '').toLowerCase().includes(search));
+      tbody.innerHTML = '';
       list.forEach((r, index) => {
         const tr = document.createElement('tr');
-        tr.dataset.index = index;
         tr.innerHTML = `
           <td>${r.item}</td>
           <td>${r.tipo || ''}</td>
@@ -1700,10 +1096,9 @@
       const tipo = document.getElementById('repoType').value.trim();
       const boss = document.getElementById('repoBoss').value.trim();
       const qtdStr = document.getElementById('repoQuantity').value.trim();
-      if (!itemNome) { alert('Informe o nome do item.'); return; }
+      if (!itemNome) { showMessage('❌ Informe o nome do item.', 'error'); return; }
       const qtdNum = qtdStr === '' ? 0 : parseInt(qtdStr, 10);
       const list = state.repoItems[state.clan] || (state.repoItems[state.clan] = []);
-
       const idx = list.findIndex(r => r.item.toLowerCase() === itemNome.toLowerCase());
       if (idx >= 0) {
         list[idx].tipo = tipo;
@@ -1712,12 +1107,10 @@
       } else {
         list.push({ item: itemNome, tipo, boss, qtd: qtdNum });
       }
-
       document.getElementById('repoItem').value = '';
       document.getElementById('repoType').value = '';
       document.getElementById('repoBoss').value = '';
       document.getElementById('repoQuantity').value = '';
-
       saveState();
       renderRepo();
     }
@@ -1729,120 +1122,6 @@
       renderRepo();
     }
 
-    function importRepoFromText() {
-      const rawText = document.getElementById('repoImportText').value;
-      if (!rawText) {
-        alert('Cole o texto do jogo primeiro.');
-        return;
-      }
-      const linhas = rawText
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length > 0);
-
-      const list = state.repoItems[state.clan] || (state.repoItems[state.clan] = []);
-
-      linhas.forEach(linha => {
-        let partes = linha.split('\t').map(p => p.trim()).filter(p => p.length > 0);
-        if (partes.length <= 1) {
-          partes = linha
-            .split(/\s{2,}/)
-            .map(p => p.trim())
-            .filter(p => p.length > 0);
-        }
-        if (partes.length < 2) return;
-
-        const itemNome = partes[0];
-        const qtdStr = partes[1];
-        const origemBoss = partes[2] || '';
-        if (!itemNome) return;
-
-        const qtdNum = isFinite(qtdStr) ? parseInt(qtdStr, 10) : parseInt(qtdStr.replace(/\D/g, ''), 10) || 0;
-
-        const idx = list.findIndex(r => r.item.toLowerCase() === itemNome.toLowerCase());
-        if (idx >= 0) {
-          list[idx].boss = origemBoss || list[idx].boss;
-          list[idx].qtd = qtdNum;
-        } else {
-          list.push({
-            item: itemNome,
-            tipo: '',
-            boss: origemBoss,
-            qtd: qtdNum
-          });
-        }
-      });
-
-      saveState();
-      renderRepo();
-      alert('Importação de itens (texto) concluída.');
-    }
-
-    async function importRepoFromPDF(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-      try {
-        const text = await extractTextFromPDF(file);
-        const linhas = text.split('\n')
-          .map(l => l.trim())
-          .filter(l => l.length > 0);
-
-        const list = state.repoItems[state.clan] || (state.repoItems[state.clan] = []);
-
-        linhas.forEach(linha => {
-          const partes = linha.split(/\s{2,}/).map(p => p.trim()).filter(Boolean);
-          if (partes.length < 4) return;
-          const [itemNome, tipo, boss, qtdStr] = partes;
-          if (!itemNome || itemNome.toLowerCase()==='item') return;
-          const qtdNum = parseInt(qtdStr.replace(/\D/g,''), 10) || 0;
-          const idx = list.findIndex(r => r.item.toLowerCase() === itemNome.toLowerCase());
-          if (idx >= 0) {
-            list[idx].tipo = tipo;
-            list[idx].boss = boss;
-            list[idx].qtd = qtdNum;
-          } else {
-            list.push({ item: itemNome, tipo, boss, qtd: qtdNum });
-          }
-        });
-
-        saveState();
-        renderRepo();
-        alert('Importação de repositório via PDF concluída.');
-      } catch (err) {
-        console.error(err);
-        alert('Erro ao ler o PDF do repositório.');
-      } finally {
-        event.target.value = '';
-      }
-    }
-
-    async function importRepoFromJSON(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-      try {
-        const text = await file.text();
-        const data = JSON.parse(text);
-        if (!Array.isArray(data)) {
-          alert('JSON inválido: esperado um array de itens.');
-          return;
-        }
-        state.repoItems[state.clan] = data.map(r => ({
-          item: String(r.item || '').trim(),
-          tipo: String(r.tipo || ''),
-          boss: String(r.boss || ''),
-          qtd: Number(r.qtd || 0)
-        }));
-        saveState();
-        renderRepo();
-        alert('Importação de repositório via JSON concluída.');
-      } catch (err) {
-        console.error(err);
-        alert('Erro ao ler JSON de repositório.');
-      } finally {
-        event.target.value = '';
-      }
-    }
-
     function deleteRepoItem(index) {
       const list = state.repoItems[state.clan] || [];
       if (!list[index]) return;
@@ -1852,12 +1131,10 @@
       renderRepo();
     }
 
-    // ---- RELATÓRIOS SEMANAIS ----
     function buildWeekSelectors(){
       const presenceSelect=document.getElementById('weekPresenceSelect');
       const deliveriesSelect=document.getElementById('weekDeliveriesSelect');
       if(!presenceSelect||!deliveriesSelect)return;
-
       const events=state.events[state.clan] || [];
       const presMap={};
       events.forEach(e=>{
@@ -1869,9 +1146,7 @@
           presMap[key]={start:range.start,end:range.end};
         }
       });
-      const presWeeks=Object.keys(presMap)
-        .map(k=>({key:k,start:presMap[k].start,end:presMap[k].end}))
-        .sort((a,b)=>a.start-b.start);
+      const presWeeks=Object.keys(presMap).map(k=>({key:k,start:presMap[k].start,end:presMap[k].end})).sort((a,b)=>a.start-b.start);
       presenceSelect.innerHTML='';
       presWeeks.forEach(w=>{
         const opt=document.createElement('option');
@@ -1879,7 +1154,6 @@
         opt.textContent=`${w.key} (${formatDateBRFromDate(w.start)} - ${formatDateBRFromDate(w.end)})`;
         presenceSelect.appendChild(opt);
       });
-
       const delivs=state.deliveries[state.clan] || [];
       const delMap={};
       delivs.forEach(d=>{
@@ -1891,9 +1165,7 @@
           delMap[key]={start:range.start,end:range.end};
         }
       });
-      const delWeeks=Object.keys(delMap)
-        .map(k=>({key:k,start:delMap[k].start,end:delMap[k].end}))
-        .sort((a,b)=>a.start-b.start);
+      const delWeeks=Object.keys(delMap).map(k=>({key:k,start:delMap[k].start,end:delMap[k].end})).sort((a,b)=>a.start-b.start);
       deliveriesSelect.innerHTML='';
       delWeeks.forEach(w=>{
         const opt=document.createElement('option');
@@ -1901,26 +1173,37 @@
         opt.textContent=`${w.key} (${formatDateBRFromDate(w.start)} - ${formatDateBRFromDate(w.end)})`;
         deliveriesSelect.appendChild(opt);
       });
-
       if(presWeeks.length && !presenceSelect.value) presenceSelect.value=presWeeks[presWeeks.length-1].key;
       if(delWeeks.length && !deliveriesSelect.value) deliveriesSelect.value=delWeeks[delWeeks.length-1].key;
     }
 
-    function aggregateWeeklyPresence(weekKey){
+    function renderWeeklyPresenceReport(){
+      const sel=document.getElementById('weekPresenceSelect');
+      const container=document.getElementById('weekly-presence-content');
+      if (!container) return;
+      container.innerHTML='';
+      if(!sel || !sel.value){
+        container.innerHTML='<div class="empty">Nenhuma semana disponível.</div>';
+        return;
+      }
       const events=state.events[state.clan] || [];
-      const refDate=parseISO(weekKey);
-      if(!refDate)return {range:null, entries:[], text:''};
+      const refDate=parseISO(sel.value);
+      if(!refDate)return;
       const range=getWeekRange(refDate);
       const filtered=events.filter(e=>{
         const d=parseISO(e.data);
         if(!d)return false;
         return d>=range.start && d<=range.end;
       });
+      if(!filtered.length){
+        container.innerHTML='<div class="empty">Sem registros de presença nessa semana.</div>';
+        return;
+      }
       const members={};
       filtered.forEach(e=>{
         const nick=e.nick;
-        const d=parseISO(e.data);
         if(!members[nick]) members[nick]={dates:{}};
+        const d=parseISO(e.data);
         const dKey=formatDateBRFromDate(d);
         if(!members[nick].dates[dKey]) members[nick].dates[dKey]={presentes:[],faltas:[],justificadas:[]};
         const bucket=members[nick].dates[dKey];
@@ -1939,38 +1222,7 @@
         });
         return {name,dates};
       });
-      let text=`PRESENÇA DA SEMANA (${formatDateBRFromDate(range.start)} - ${formatDateBRFromDate(range.end)})\n\n`;
       entries.forEach(m=>{
-        text+=`${m.name}\n`;
-        m.dates.forEach(d=>{
-          const pres=d.presentes.length?`Foi em: ${d.presentes.join(', ')}`:'';
-          const falt=d.faltas.length?`Faltou em: ${d.faltas.join(', ')}`:'';
-          const jus=d.justificadas
-          const jus=d.justificadas.length?`Justificou: ${d.justificadas.join(', ')}`:'';
-          const parts=[pres,falt,jus].filter(Boolean).join(' | ');
-          text+=` - ${d.dateStr}: ${parts}\n`;
-        });
-        text+='\n';
-      });
-      if(!filtered.length) text+='Sem registros de presença nessa semana.\n';
-      return {range,entries,text};
-    }
-
-    function renderWeeklyPresenceReport(){
-      const sel=document.getElementById('weekPresenceSelect');
-      const container=document.getElementById('weekly-presence-content');
-      if (!container) return;
-      container.innerHTML='';
-      if(!sel || !sel.value){
-        container.innerHTML='<div class="empty">Nenhuma semana disponível.</div>';
-        return;
-      }
-      const agg=aggregateWeeklyPresence(sel.value);
-      if(!agg.entries.length){
-        container.innerHTML='<div class="empty">Sem registros de presença nessa semana.</div>';
-        return;
-      }
-      agg.entries.forEach(m=>{
         const div=document.createElement('div');
         div.className='history-member';
         const h=document.createElement('h4');
@@ -1992,27 +1244,28 @@
       });
     }
 
-    function copyWeeklyPresenceText(){
-      const sel=document.getElementById('weekPresenceSelect');
-      if(!sel || !sel.value){alert('Selecione uma semana primeiro.');return;}
-      const agg=aggregateWeeklyPresence(sel.value);
-      navigator.clipboard.writeText(agg.text).then(()=>{
-        alert('Relatório de presença copiado para a área de transferência.');
-      }).catch(()=>{
-        alert('Não foi possível copiar automaticamente. Selecione o texto manualmente.');
-      });
-    }
-
-    function aggregateWeeklyDeliveries(weekKey){
+    function renderWeeklyDeliveriesReport(){
+      const sel=document.getElementById('weekDeliveriesSelect');
+      const container=document.getElementById('weekly-deliveries-content');
+      if (!container) return;
+      container.innerHTML='';
+      if(!sel || !sel.value){
+        container.innerHTML='<div class="empty">Nenhuma semana disponível.</div>';
+        return;
+      }
       const delivs=state.deliveries[state.clan] || [];
-      const refDate=parseISO(weekKey);
-      if(!refDate)return {range:null,entries:[],text:''};
+      const refDate=parseISO(sel.value);
+      if(!refDate)return;
       const range=getWeekRange(refDate);
       const filtered=delivs.filter(d=>{
         const dt=parseISO(d.data);
         if(!dt) return false;
         return dt>=range.start && dt<=range.end;
       });
+      if(!filtered.length){
+        container.innerHTML='<div class="empty">Sem entregas nessa semana.</div>';
+        return;
+      }
       const members={};
       filtered.forEach(d=>{
         const nick=d.nick;
@@ -2030,33 +1283,7 @@
         }).map(ds=>({dateStr:ds,entregas:members[name].dates[ds]}));
         return {name,dates};
       });
-      let text=`ENTREGAS DA SEMANA (${formatDateBRFromDate(range.start)} - ${formatDateBRFromDate(range.end)})\n\n`;
       entries.forEach(m=>{
-        text+=`${m.name}\n`;
-        m.dates.forEach(d=>{
-          text+=` - ${d.dateStr}: ${d.entregas.join(' • ')}\n`;
-        });
-        text+='\n';
-      });
-      if(!filtered.length) text+='Sem entregas registradas nessa semana.\n';
-      return {range,entries,text};
-    }
-
-    function renderWeeklyDeliveriesReport(){
-      const sel=document.getElementById('weekDeliveriesSelect');
-      const container=document.getElementById('weekly-deliveries-content');
-      if (!container) return;
-      container.innerHTML='';
-      if(!sel || !sel.value){
-        container.innerHTML='<div class="empty">Nenhuma semana disponível.</div>';
-        return;
-      }
-      const agg=aggregateWeeklyDeliveries(sel.value);
-      if(!agg.entries.length){
-        container.innerHTML='<div class="empty">Sem entregas nessa semana.</div>';
-        return;
-      }
-      agg.entries.forEach(m=>{
         const div=document.createElement('div');
         div.className='history-member';
         const h=document.createElement('h4');
@@ -2066,7 +1293,7 @@
         dates.className='history-dates';
         m.dates.forEach(d=>{
           const p=document.createElement('div');
-          p.textContent=`${d.dateStr}: ${d.entregas.join(' • ')}`;
+          p.textContent=`${d.dateStr}: ${d.entregas.join(' | ')}`;
           dates.appendChild(p);
         });
         div.appendChild(dates);
@@ -2074,49 +1301,32 @@
       });
     }
 
-    function copyWeeklyDeliveriesText(){
-      const sel=document.getElementById('weekDeliveriesSelect');
-      if(!sel || !sel.value){alert('Selecione uma semana primeiro.');return;}
-      const agg=aggregateWeeklyDeliveries(sel.value);
-      navigator.clipboard.writeText(agg.text).then(()=>{
-        alert('Relatório de entregas copiado para a área de transferência.');
+    function copyWeeklyPresenceText(){
+      const container=document.getElementById('weekly-presence-content');
+      if (!container) return;
+      const text=container.innerText || container.textContent || '';
+      if (!text.trim()) { showMessage('Nada para copiar.', 'error'); return; }
+      navigator.clipboard.writeText(text).then(()=>{
+        showMessage('Relatório de presença copiado!', 'success');
       }).catch(()=>{
-        alert('Não foi possível copiar automaticamente. Selecione o texto manualmente.');
+        showMessage('Erro ao copiar.', 'error');
       });
     }
 
-    // ---- PDF EXPORT (MEMBROS) ----
-    function exportTableToPDF(tableId, titulo) {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const table = document.getElementById(tableId);
-      if (!table) {
-        alert('Tabela não encontrada.');
-        return;
-      }
-      doc.setFontSize(14);
-      doc.text(`Clã Murders ${state.clan} - ${titulo}`, 14, 16);
-      const head = [];
-      const body = [];
-      const ths = table.querySelectorAll('thead tr th');
-      ths.forEach(th => head.push(th.innerText));
-      const rows = table.querySelectorAll('tbody tr');
-      rows.forEach(row => {
-        const rowData = [];
-        row.querySelectorAll('td').forEach(td => rowData.push(td.innerText));
-        body.push(rowData);
+    function copyWeeklyDeliveriesText(){
+      const container=document.getElementById('weekly-deliveries-content');
+      if (!container) return;
+      const text=container.innerText || container.textContent || '';
+      if (!text.trim()) { showMessage('Nada para copiar.', 'error'); return; }
+      navigator.clipboard.writeText(text).then(()=>{
+        showMessage('Relatório de entregas copiado!', 'success');
+      }).catch(()=>{
+        showMessage('Erro ao copiar.', 'error');
       });
-      doc.autoTable({
-        head: [head],
-        body,
-        startY: 22,
-        styles: { fontSize: 8 }
-      });
-      doc.save(`${titulo}-clan${state.clan}.pdf`);
     }
 
-    // ---- RENDER GERAL ----
-    function renderAll(){
+    function renderAll() {
+      document.getElementById('webhookUrl').value = state.webhookUrl || '';
       renderMembers();
       renderEvents();
       renderDeliveries();
@@ -2124,17 +1334,9 @@
       buildWeekSelectors();
       renderWeeklyPresenceReport();
       renderWeeklyDeliveriesReport();
-      loadWebhookToInput();
     }
 
-    // ---- INIT ----
-    document.addEventListener('DOMContentLoaded', () => {
-      loadState();
-      initTheme();
-      setupThemeToggle();
-      updateDate();
-      renderAll();
-    });
+    window.addEventListener('load', loadState);
   </script>
 </body>
 </html>
